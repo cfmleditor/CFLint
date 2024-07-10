@@ -21,12 +21,10 @@ import org.apache.commons.io.IOUtils;
 import com.cflint.Version;
 import com.cflint.api.CFLintAPI;
 import com.cflint.api.CFLintResult;
-import com.cflint.cli.Settings;
 import com.cflint.config.CFLintConfiguration;
 import com.cflint.config.CFLintPluginInfo;
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule;
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule.PluginMessage;
-import com.cflint.config.CFLintPluginInfo.RuleGroup;
 import com.cflint.config.ConfigBuilder;
 import com.cflint.config.ConfigUtils;
 import com.cflint.exception.CFLintConfigurationException;
@@ -82,8 +80,8 @@ public class CFLintCLI {
         Option optionSTRICT_INCLUDE = new Option(Settings.STRICT_INCLUDE, false, "Check every include and try to parse it");
         Option optionLOGERROR = new Option(Settings.LOGERROR, false, "log parsing errors as bugs");
         Option optionE = new Option(Settings.E, false, "log parsing errors as bugs");
-        Option optionQUIET = new Option(Settings.QUIET, false, "quiet mode surpresses most linting error and commentary output");
-        Option optionQ = new Option(Settings.Q, false, "quiet mode surpresses most linting error and commentary output");
+        Option optionQUIET = new Option(Settings.QUIET, false, "quiet mode suppresses most linting error and commentary output");
+        Option optionQ = new Option(Settings.Q, false, "quiet mode suppresses most linting error and commentary output");
         Option optionDEBUG = new Option(Settings.DEBUG, false, "debug-level output during linting");
         Option optionD = new Option(Settings.D, false, "debug-level output during linting");
         Option optionHELP = new Option(Settings.HELP, false, DISPLAY_THIS_HELP);
@@ -226,9 +224,9 @@ public class CFLintCLI {
         final CFLintPluginInfo pluginInfo = ConfigUtils.loadDefaultPluginInfo();
         final ConfigBuilder configBuilder = new ConfigBuilder(pluginInfo);
         if (cmd.hasOption(Settings.MARKDOWN)){
-            final FileWriter out = new FileWriter("RULES.MD");
+            final FileWriter out = new FileWriter("RULES.md");
             CFLintDoc.generateRuleMarkDown(pluginInfo, new PrintWriter(out));
-            System.out.println("Rules written to RULES.MD");
+            System.out.println("Rules written to RULES.md");
             out.close();
             return;
         }

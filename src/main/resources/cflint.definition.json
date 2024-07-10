@@ -101,7 +101,7 @@
             "message": [
                 {
                     "code": "QUERYNEW_DATATYPE",
-                    "messageText": "QueryNew statement should specify datatypes.",
+                    "messageText": "QueryNew statement should specify data types.",
                     "severity": "WARNING"
                 }
             ],
@@ -300,7 +300,7 @@
                 {
                     "code": "ARG_HINT_MISSING_SCRIPT",
                     "severity": "INFO",
-                    "messageText": "Argument ${variable} is missing a hint.  Use javadoc style annotations on cfscript functions."
+                    "messageText": "Argument ${variable} is missing a hint.  Use Javadoc style annotations on cfscript functions."
                 }
             ],
             "parameter": []
@@ -335,7 +335,7 @@
             "parameter": [
                 {
                     "name": "length",
-                    "value": "100"
+                    "value": 100
                 }
             ]
         },
@@ -352,7 +352,7 @@
             "parameter": [
                 {
                     "name": "length",
-                    "value": "500"
+                    "value": 500
                 }
             ]
         },
@@ -386,7 +386,7 @@
             "parameter": [
                 {
                     "name": "maximum",
-                    "value": "10"
+                    "value": 10
                 }
             ]
         },
@@ -403,7 +403,7 @@
             "parameter": [
                 {
                     "name": "maximum",
-                    "value": "10"
+                    "value": 10
                 }
             ]
         },
@@ -420,7 +420,7 @@
             "parameter": [
                 {
                     "name": "maximum",
-                    "value": "10"
+                    "value": 10
                 }
             ]
         },
@@ -482,7 +482,7 @@
             "parameter": [
                 {
                     "name": "functionName",
-                    "value": "IsDebugMode"
+                    "value": "isDebugMode"
                 }
             ]
         },
@@ -504,7 +504,7 @@
                 {
                     "code": "AVOID_USING_ARRAYNEW",
                     "severity": "INFO",
-                    "messageText": "Use implict array construction instead (= [])."
+                    "messageText": "Use implicit array construction instead (= [])."
                 }
             ],
             "parameter": []
@@ -581,15 +581,15 @@
             "parameter": [
                 {
                     "name": "minLength",
-                    "value": "3"
+                    "value": 3
                 },
                 {
                     "name": "maxLength",
-                    "value": "20"
+                    "value": 20
                 },
                 {
                     "name": "maxWords",
-                    "value": "4"
+                    "value": 4
                 },
                 {
                     "name": "ignoreUpperCaseScopes",
@@ -657,15 +657,15 @@
             "parameter": [
                 {
                     "name": "minLength",
-                    "value": "3"
+                    "value": 3
                 },
                 {
                     "name": "maxLength",
-                    "value": "20"
+                    "value": 20
                 },
                 {
                     "name": "maxWords",
-                    "value": "4"
+                    "value": 4
                 },
                 {
                     "name": "case",
@@ -716,15 +716,15 @@
             "parameter": [
                 {
                     "name": "minLength",
-                    "value": "3"
+                    "value": 3
                 },
                 {
                     "name": "maxLength",
-                    "value": "25"
+                    "value": 25
                 },
                 {
                     "name": "maxWords",
-                    "value": "5"
+                    "value": 5
                 },
                 {
                     "name": "case",
@@ -775,15 +775,15 @@
             "parameter": [
                 {
                     "name": "minLength",
-                    "value": "3"
+                    "value": 3
                 },
                 {
                     "name": "maxLength",
-                    "value": "15"
+                    "value": 15
                 },
                 {
                     "name": "maxWords",
-                    "value": "3"
+                    "value": 3
                 },
                 {
                     "name": "case",
@@ -846,9 +846,6 @@
                 {
                     "name": "usedTagAttributes",
                     "value": [
-                        "cfquery/name",
-                        "cfloop/index",
-                        "cfloop/item",
                         "cfchart/name",
                         "cfdocument/name",
                         "cfftp/name",
@@ -857,8 +854,11 @@
                         "cfimage/name",
                         "cfimap/name",
                         "cfldap/name",
+                        "cfloop/index",
+                        "cfloop/item",
                         "cfoutput/query",
                         "cfpdf/name",
+                        "cfquery/name",
                         "cfreport/name",
                         "cfsavecontent/name",
                         "cfstoreproc/result",
@@ -953,11 +953,11 @@
             "parameter": [
                 {
                     "name": "maximum",
-                    "value": "3"
+                    "value": 3
                 },
                 {
                     "name": "maxWarnings",
-                    "value": "5"
+                    "value": 5
                 },
                 {
                     "name": "warningScope",
@@ -982,11 +982,11 @@
             "parameter": [
                 {
                     "name": "maximum",
-                    "value": "3"
+                    "value": 3
                 },
                 {
                     "name": "maxWarnings",
-                    "value": "5"
+                    "value": 5
                 },
                 {
                     "name": "warningScope",
