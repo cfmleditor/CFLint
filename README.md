@@ -101,7 +101,7 @@ CFLint currently supports JSON- and XML-based configuration. XML-based configura
 
 When CFLint executes, it scans and parses your code (using CFParser). The syntax tree is then being examined against a set of built-in rules.
 
-In CFLint, those rules are called and implemented as plugins (they live in `/src/main/java/com/cflint/plugins`). By default, all rules will be used against your codebase. This is what a lot of people will do, but using configuration allows you to build a custom scenario to test your code against. See [RULES_TABLE.md](/RULES_TABLE.md) for more information on rules and their meaning.
+In CFLint, those rules are called and implemented as plugins (they live in `/src/main/java/com/cflint/plugins`). By default, all rules will be used against your codebase. This is what a lot of people will do, but using configuration allows you to build a custom scenario to test your code against. See [RULES.md](/RULES.md) for more information on rules and their meaning.
 
 CFLint is opinionated and every release after 1.3.0 will never scan in directories starting with a ```.``` to prevent wasting time of hidden directories such as build configuration, module/library storage or version control information.
 
