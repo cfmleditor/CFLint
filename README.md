@@ -1,6 +1,6 @@
-![CFLint](/src/main/resources/CFLint-logo.jpg)
-
 # CFLint
+
+![CFLint](/src/main/resources/CFLint-logo.jpg)
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.cflint/CFLint/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.cflint/CFLint) [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/6f4b01d4d2cb4860b60ac666452071f1)](https://www.codacy.com/app/ryaneberly/CFLint?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cflint/CFLint&amp;utm_campaign=Badge_Grade) [![Build Status](https://travis-ci.org/cflint/CFLint.svg?branch=master)](https://travis-ci.org/cflint/CFLint)
 
@@ -25,21 +25,25 @@ The master branch is considered our stable codebase. Most of the development hap
 ## Building CFLint
 
 1. Fork the repository into your account and clone or download the codebase as a zip-file.
-1. Install the tooling of your choice and build via Gradle or Maven (deprecated). CFLint requires Java 8.
+2. Install the tooling of your choice and build via Gradle or Maven (deprecated). CFLint requires Java 8.
 
-    a. Gradle: execute
+a. Gradle: execute
 
-        gradlew build
+```cmd
+gradlew build
+```
 
-    in the cflint directory
+in the cflint directory
 
-    b. Maven: execute
+b. Maven: execute
 
-        mvn clean install
+```cmd
+mvn clean install
+```
 
-    in the cflint directory
+in the cflint directory
 
-    Alternatively, import the CFLint codebase into the IDE of your choice and use its respectively Gradle/Maven integration. This should work out of the box for Eclipse and IntelliJ users.
+Alternatively, import the CFLint codebase into the IDE of your choice and use its respectively Gradle/Maven integration. This should work out of the box for Eclipse and IntelliJ users.
 
 ## Using CFLint - Quickstart Guide
 
@@ -73,17 +77,23 @@ CFLint-1.5.0-all.jar
 
 ### Scan a folder with the complete set of rules
 
-    java -jar CFLint-1.5.0-all.jar -folder <baseFolder>
+```cmd
+java -jar CFLint-1.5.0-all.jar -folder <baseFolder>
+```
 
 ### Scan a file with the complete set of rules
 
-    java -jar CFLint-1.5.0-all.jar -file <fullPathToFile>
+```cmd
+java -jar CFLint-1.5.0-all.jar -file <fullPathToFile>
+```
 
 ### See command line parameters and help
 
-    java -jar CFLint-1.5.0-all.jar -help
+```cmd
+java -jar CFLint-1.5.0-all.jar -help
+```
 
-# User manual
+## User manual
 
 **Note: This is a work in progress, we're currently collating information from a variety of sources.**
 
@@ -103,7 +113,7 @@ When CFLint executes, it scans and parses your code (using CFParser). The syntax
 
 In CFLint, those rules are called and implemented as plugins (they live in `/src/main/java/com/cflint/plugins`). By default, all rules will be used against your codebase. This is what a lot of people will do, but using configuration allows you to build a custom scenario to test your code against. See [RULES.md](/RULES.md) for more information on rules and their meaning.
 
-CFLint is opinionated and every release after 1.3.0 will never scan in directories starting with a ```.``` to prevent wasting time of hidden directories such as build configuration, module/library storage or version control information.
+CFLint is opinionated and every release after 1.3.0 will never scan in directories starting with a `.` to prevent wasting time of hidden directories such as build configuration, module/library storage or version control information.
 
 ### Global configuration
 
@@ -151,31 +161,41 @@ CFLint offers an annotation-based configuration to deal with this and similar sc
 
 #### Tag-based CFML
 
-    <!---
-    @CFLintIgnore SOMETHINGELSE,MISSING_VAR,ANOTHERTHINGTOIGNORE
-    --->
+```html
+<!---
+@CFLintIgnore SOMETHINGELSE,MISSING_VAR,ANOTHERTHINGTOIGNORE
+--->
+```
 
 #### CFScript
 
 Ignoring all rules on the current line:
 
-    //cflint ignore:line
+```js
+//cflint ignore:line
+```
 
 Ignoring a specific rule (or a comma-separated list of rules) on the current line:
 
-    //cflint ignore:MISSING_VAR
+```js
+//cflint ignore:MISSING_VAR
+```
 
 Multiline ignore annotation:
 
-    /*
-        @CFLintIgnore SOMETHINGELSE,MISSING_VAR,ANOTHERTHINGTOIGNORE
-    */
+```js
+/*
+    @CFLintIgnore SOMETHINGELSE,MISSING_VAR,ANOTHERTHINGTOIGNORE
+*/
+```
 
 #### Ignoring within SQL
 
 Within SQL, you can also use
 
-    <!--- @CFLintIgnore CFQUERYPARAM_REQ --->
+```html
+<!--- @CFLintIgnore CFQUERYPARAM_REQ --->
+```
 
 to ignore a rule violation on the next line.
 
@@ -234,13 +254,15 @@ The exception is debug mode. In debug mode, CFLint will always ignore user setti
 
 The flag `-html` instructs CFLint to create an HTML document. The full syntax is:
 
-    -html -htmlfile <outputFileName>
+```cmd
+-html -htmlfile <outputFileName>
+```
 
 ### XML
 
 The flag `-xml` instructs CFLint to create XML. There are two options for XML reporting.
 
-The first option is what we call CFLint XML. It's an internal format that adheres to a basic schema provided [here](/src/main/resources/schemas/cflint-result.xsd). You could then use this format as-is or to do further processing of your choice.
+The first option is what we call CFLint XML. It's an internal format that adheres to a basic schema provided [cflint-result.xsd](/src/main/resources/schemas/cflint-result.xsd). You could then use this format as-is or to do further processing of your choice.
 
 The second option is FindBugs XML. The resulting XML document adheres to the current version of the FindBugs BugCollection [XML Schema Definition](src/main/resources/findbugs/bugcollection.xsd) and can be used in most CI-/Build-Server products. JetBrains TeamCity 10+ can import this format out of the box.
 
@@ -250,7 +272,9 @@ The second option is FindBugs XML. The resulting XML document adheres to the cur
 
 To create CFLint XML provide the following command-line arguments:
 
-    -xml -xmlstyle cflint -xmlfile <outputFileName>
+```cmd
+-xml -xmlstyle cflint -xmlfile <outputFileName>
+```
 
 Example of CFLint XML:
 
@@ -279,7 +303,9 @@ Example of CFLint XML:
 
 To create FindBugs XML provide the following command-line arguments:
 
-    -xml -xmlstyle findbugs -xmlfile <outputFileName>
+```cmd
+-xml -xmlstyle findbugs -xmlfile <outputFileName>
+```
 
 The FindBugs XML format is currently created using an XSLT document, transforming the CFLint report to FindBugs XML ([`/src/main/resources/findbugs/cflint-to-findbugs.xsl`](/src/main/resources/findbugs/cflint-to-findbugs.xsl)).
 
@@ -287,7 +313,9 @@ The FindBugs XML format is currently created using an XSLT document, transformin
 
 JSON output can be created with
 
-    -json -jsonfile <outputFileName>
+```cmd
+-json -jsonfile <outputFileName>
+```
 
 Example of CFLint JSON:
 
@@ -327,46 +355,50 @@ Example of CFLint JSON:
 }
 ```
 
-The JSON schema is available [here](/src/main/resources/schemas/cflint-result.schema.json).
+The JSON schema is available [cflint-result.schema.json](/src/main/resources/schemas/cflint-result.schema.json).
 
 ### Text
 
 Plain text output can be created with
 
-    -text -textfile <outputFileName>
+```cmd
+-text -textfile <outputFileName>
+```
 
 Example of plain text output:
 
-    Issue
-    Severity:WARNING
-    Message code:CFQUERYPARAM_REQ
-        File:/Users/kai/Documents/Code/paypal.cfc
-        Column:0
-        Line:79
-            Message:<cfquery> should use <cfqueryparam/> for variable 'arguments.something'.
-            Variable:'arguments.something' in function:
-            Expression:<cfquery name=\"qry\" datasource=\"#variables.dsn#\" cachedwithin=\"#createTimeSpan(0,0,arguments.cacheInMins,0)#\">\r\n...some Details...
+```text
+Issue
+Severity:WARNING
+Message code:CFQUERYPARAM_REQ
+    File:/Users/kai/Documents/Code/paypal.cfc
+    Column:0
+    Line:79
+        Message:<cfquery> should use <cfqueryparam/> for variable 'arguments.something'.
+        Variable:'arguments.something' in function:
+        Expression:<cfquery name=\"qry\" datasource=\"#variables.dsn#\" cachedwithin=\"#createTimeSpan(0,0,arguments.cacheInMins,0)#\">\r\n...some Details...
 
-    Severity:WARNING
-    Message code:CFQUERYPARAM_REQ
-        File:/Users/kai/Documents/Code/paypal.cfc
-        Column:0
-        Line:145
-            Message:<cfquery> should use <cfqueryparam/> for variable 'arguments.something'.
-            Variable:'arguments.something' in function:
-            Expression:<cfquery name=\"qry\" datasource=\"#variables.dsn#\" cachedwithin=\"#createTimeSpan(0,0,arguments.cacheInMins,0)#\">\r\n...some Details...
+Severity:WARNING
+Message code:CFQUERYPARAM_REQ
+    File:/Users/kai/Documents/Code/paypal.cfc
+    Column:0
+    Line:145
+        Message:<cfquery> should use <cfqueryparam/> for variable 'arguments.something'.
+        Variable:'arguments.something' in function:
+        Expression:<cfquery name=\"qry\" datasource=\"#variables.dsn#\" cachedwithin=\"#createTimeSpan(0,0,arguments.cacheInMins,0)#\">\r\n...some Details...
 
-    ...
+...
 
 
-    Total files:108
-    Total lines:55690
+Total files:108
+Total lines:55690
 
-    Issue counts:1
-    CFQUERYPARAM_REQ:4
+Issue counts:1
+CFQUERYPARAM_REQ:4
 
-    Total issues:4
-    Total warnings:4
+Total issues:4
+Total warnings:4
+```
 
 ## API
 
@@ -466,7 +498,7 @@ Looking at the function `element`, the arguments are:
 * `context` - the current file being checked
 * `bugs` - the appending object of violations
 
-# Recipes
+## Recipes
 
 ## Ignoring a directory for processing
 
@@ -483,7 +515,7 @@ The `includes` field is ignored if it is an empty list, so simply add a single i
 or more simply:
 
 ```json
-    {}
+{}
 ```
 
 The following will ignore all rules in the current folder and below.
@@ -531,31 +563,35 @@ To filter out the GLOBAL_VAR messages in the "some\package\location\" folder, ad
 
 #### Windows
 
-    [
-        other exclude rules...,
-        {"file":".*some\\\\package\\\\location\\\\.*","code":"GLOBAL_VAR"}
-    ]
+```json
+[
+    other exclude rules...,
+    {"file":".*some\\\\package\\\\location\\\\.*","code":"GLOBAL_VAR"}
+]
+```
 
 Note: The back slashes must be escaped twice, once for JSON, once for regular expressions
 
 #### \*nix
 
-    [
-        other exclude rules...,
-        {"file":".*some/package/location/.*","code":"GLOBAL_VAR"}
-    ]
+```json
+[
+    other exclude rules...,
+    {"file":".*some/package/location/.*","code":"GLOBAL_VAR"}
+]
+```
 
-# Support
+## Support
 
 Raise issues here on GitHub and we will look at them.
 
 The [CFML Slack team](https://cfml-slack.herokuapp.com/) has a `#cflint` channel you can join and talk to most of the regular contributors and other users.
 
-# How to contribute
+## How to contribute
 
 See [CONTRIBUTING.md](/CONTRIBUTING.md) for further information.
 
-# Interesting third-party projects
+## Interesting third-party projects
 
 Please note that the majority of the libraries and projects mentioned here are not directly related to and maintained by the CFLint team. Please see the authors and maintainers of the respective project for support using their libraries first.
 

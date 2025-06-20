@@ -41,7 +41,7 @@
 | AVOID_USING_WRITEDUMP | WriteDumpChecker | Avoid use of writeDump statements | INFO | Avoid using the writeDump function in production code |
 | AVOID_USING_STRUCTNEW | StructNewChecker | Avoid use of structNew statements. Use {} instead | INFO | Avoid using the structNew function in production code |
 | AVOID_USING_ISDEBUGMODE | IsDebugModeChecker | Avoid use of isDebugMode statements | WARNING | Avoid using the IsDebugMode function in production code |
-| FUNCTION_NAME_COLLISION | FunctionCollisionChecker | Function name collision with reserved words | WARNING | Avoid using the name *variable* for a function. It is reserved in some CFML implementations. See https://cfdocs.org/*variable* |
+| FUNCTION_NAME_COLLISION | FunctionCollisionChecker | Function name collision with reserved words | WARNING | Avoid using the name *variable* for a function. It is reserved in some CFML implementations. See <https://cfdocs.org/*variable>* |
 | AVOID_USING_ARRAYNEW | ArrayNewChecker | Avoid use of arrayNew statements. Use [] instead | INFO | Use implict array construction instead (= []) |
 | COMPLEX_BOOLEAN_CHECK | ComplexBooleanExpressionChecker | Complex boolean expression | WARNING | Boolean expression is too complex. Consider simplifying or moving to a named method |
 | EXPLICIT_BOOLEAN_CHECK | BooleanExpressionChecker | Checking boolean expression explicitly | INFO | Explicit check of boolean expression is not needed |
@@ -94,6 +94,7 @@
 ## Rule Groups
 
 ### BugProne
+
 - ARG_VAR_CONFLICT
 - NO_DEFAULT_INSIDE_SWITCH
 - NESTED_CFOUTPUT
@@ -103,6 +104,7 @@
 - AVOID_USING_ISDATE
 
 ### Correctness
+
 - ARG_DEFAULT_MISSING
 - ARG_TYPE_ANY
 - ARG_TYPE_MISSING
@@ -115,6 +117,7 @@
 - USE_DISPLAY_NAME
 
 ### BadPractice
+
 - AVOID_USING_ABORT
 - AVOID_USING_CFABORT_TAG
 - AVOID_USING_CFDUMP_TAG
@@ -133,10 +136,12 @@
 - AVOID_USING_ISDEBUGMODE
 
 ### Security
+
 - CFQUERYPARAM_REQ
 - QUERYPARAM_REQ
 
 ### CodeStyle
+
 - ARG_HINT_MISSING
 - COMPONENT_HINT_MISSING
 - FUNCTION_HINT_MISSING
@@ -145,11 +150,13 @@
 - ARG_HINT_MISSING_SCRIPT
 
 ### ModernSyntax
+
 - AVOID_USING_ARRAYNEW
 - AVOID_USING_STRUCTNEW
 - AVOID_USING_CREATEOBJECT
 
 ### Complexity
+
 - COMPLEX_BOOLEAN_CHECK
 - EXCESSIVE_FUNCTIONS
 - EXCESSIVE_ARGUMENTS
@@ -159,6 +166,7 @@
 - FUNCTION_TOO_COMPLEX
 
 ### Naming
+
 - METHOD_HAS_PREFIX_OR_POSTFIX
 - METHOD_INVALID_NAME
 - METHOD_IS_TEMPORARY
@@ -192,6 +200,7 @@
 - PACKAGE_CASE_MISMATCH
 
 ### Experimental
+
 - NEVER_USE_QUERY_IN_CFM
 - FILE_SHOULD_START_WITH_LOWERCASE
 
@@ -231,4 +240,3 @@
 | LocalLiteralChecker | maxWarnings | 5 |
 | LocalLiteralChecker | warningScope | local |
 | LocalLiteralChecker | ignoreWords | numeric,text,textnocase,asc,desc,in,out,inout,one,all,bigdecimal,boolean,byte,char,int,long,float,double,short,string,null |
-
