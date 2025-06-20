@@ -1,9 +1,6 @@
 buildscript {
     repositories {
         mavenLocal()
-        jcenter {
-            url = "https://jcenter.bintray.com/"
-        }
         maven {
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
@@ -136,7 +133,7 @@ dependencies {
 test {
     testLogging {
         exceptionFormat = 'full'
-        showExceptions true
+        showExceptions = true
         events "skipped", "failed", "standardError"
         showStandardStreams = true
     }
@@ -176,14 +173,14 @@ artifacts {
 }
 
 task gitChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
-    group "documentation"
+    group="documentation"
 
     file = new File("CHANGELOG.md");
     templateContent = file('src/main/resources/changelog.mustache').getText('UTF-8');
 }
 
 task githubChangelogGenerator {
-    group "documentation"
+    group="documentation"
 
     doLast {
         def latestTag = getLatestTag()
