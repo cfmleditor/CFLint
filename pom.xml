@@ -57,6 +57,12 @@
 			<name>sonatype</name>
 			<url>https://oss.sonatype.org/content/repositories/releases</url>
 		</repository>
+		<repository>
+			<id>github</id>
+			<url>https://maven.pkg.github.com/cfmleditor/cfparser</url>
+			<releases><enabled>true</enabled></releases>
+			<snapshots><enabled>true</enabled></snapshots>
+		</repository>
 	</repositories>
 
 	<licenses>
