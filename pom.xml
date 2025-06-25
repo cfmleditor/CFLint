@@ -48,11 +48,6 @@
 
 	<repositories>
 		<repository>
-			<id>cfmlprojects</id>
-			<name>cfmlprojects</name>
-	      <url>https://cfmlprojects.org/artifacts</url>
-		</repository>
-		<repository>
 			<id>sonatype</id>
 			<name>sonatype</name>
 			<url>https://oss.sonatype.org/content/repositories/releases</url>
@@ -216,6 +211,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.3.0</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -422,12 +418,14 @@
 	<!-- Sonatype: mvn nexus-staging:release -P deploy -DskipTests -->
 	<distributionManagement>
 		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/cfmleditor/cflint</url>
 		</snapshotRepository>
 		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/cfmleditor/cflint</url>
 		</repository>
 	</distributionManagement>
 </project>
