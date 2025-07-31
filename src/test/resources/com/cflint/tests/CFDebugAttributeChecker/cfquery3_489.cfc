@@ -1,1 +1,1 @@
-<cfquery name="foo" debug="no"/>
+<cfquery name="foo" debug="no"></cfquery>

@@ -16,7 +16,7 @@
       "line" : 1,
       "message" : "Avoid leaving debug attribute on tags.",
       "variable" : "",
-      "expression" : "<cfquery name=\"foo\" debug=\"true\"/>"
+      "expression" : "<cfquery name=\"foo\" debug=\"true\"></cfquery>"
     } ]
   } ],
   "counts" : {
