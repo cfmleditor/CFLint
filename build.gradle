@@ -7,9 +7,6 @@ buildscript {
         maven {
             url = "https://plugins.gradle.org/m2/"
         }
-        maven { 
-            url = "https://cfmlprojects.org/artifacts" 
-        }
         maven {
             url = "https://maven.pkg.github.com/cfmleditor/cfparser"
             mavenContent {
@@ -98,9 +95,6 @@ repositories {
     maven { 
         url = "https://oss.sonatype.org/content/repositories/releases" 
     }
-    maven { 
-        url = "https://cfmlprojects.org/artifacts" 
-    }
     maven {
         url = "https://maven.pkg.github.com/cfmleditor/cfparser"
         mavenContent {
@@ -113,7 +107,7 @@ repositories {
     }
 }
 dependencies {
-    implementation group: 'com.github.cfmleditor', name: 'cfml.parsing', version: '2.14.0-SNAPSHOT'
+    implementation group: 'com.github.cfmleditor', name: 'cfml.parsing', version: '2.15.0-SNAPSHOT'
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.2'
     implementation group: 'ro.fortsoft.pf4j', name: 'pf4j', version: '0.6'
     implementation group: 'org.apache.ant', name: 'ant', version: '1.10.14'

@@ -1,5 +1,9 @@
 ﻿# CHANGE LOG
 
+## [CFLint-1.5.9](https://github.com/cfmleditor/CFLint/tree/CFLint-1.5.9) (2025-08-09)
+
+- Add support for `===` and `!==` via updated cfparser
+
 ## [CFLint-1.5.8](https://github.com/cfmleditor/CFLint/tree/CFLint-1.5.8) (2025-06-09)
 
 - RULES_TABLE.md for improved rule readability
