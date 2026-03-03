@@ -3,10 +3,10 @@ package com.cflint.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 import com.cflint.Levels;
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule.PluginMessage;
@@ -28,20 +28,24 @@ public class CFLintPluginInfo {
     /** 
      * @return List
      */
+    @JsonProperty("ruleImpl")
     public List<PluginInfoRule> getRules() {
         return rules;
     }
 
     @XmlElement(name = "ruleImpl")
+    @JsonProperty("ruleImpl")
     public void setRules(final List<PluginInfoRule> rules) {
         this.rules = rules;
     }
 
+    @JsonProperty("ruleGroup")
     public List<RuleGroup> getRuleGroups() {
         return ruleGroups;
     }
 
     @XmlElement(name = "ruleGroup")
+    @JsonProperty("ruleGroup")
     public void setRuleGroups(final List<RuleGroup> ruleGroups) {
         this.ruleGroups = ruleGroups;
     }
@@ -107,6 +111,7 @@ public class CFLintPluginInfo {
         }
 
         @XmlElement(name = "message")
+        @JsonProperty("message")
         public void setMessages(final List<PluginMessage> messages) {
             this.messages = messages;
         }
@@ -159,6 +164,7 @@ public class CFLintPluginInfo {
         }
 
         @XmlElement(name = "parameter")
+        @JsonProperty("parameter")
         public void setParameters(final List<PluginParameter> parameters) {
             this.parameters = parameters;
         }
@@ -214,6 +220,7 @@ public class CFLintPluginInfo {
         }
 
         @XmlElement(name = "message")
+        @JsonProperty("message")
         public void setMessages(final List<PluginMessage> messages) {
             this.messages = messages;
         }

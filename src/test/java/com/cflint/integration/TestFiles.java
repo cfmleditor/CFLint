@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

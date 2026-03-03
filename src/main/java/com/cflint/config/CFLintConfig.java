@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule;
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule.PluginMessage;
 import com.cflint.plugins.CFLintScanner;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @XmlRootElement(name = "config")
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -45,11 +46,13 @@ public class CFLintConfig extends BaseConfig {
      * @see com.cflint.config.CFLintConfiguration#getRules()
      */
     @Override
+    @JsonProperty("rule")
     public List<CFLintPluginInfo.PluginInfoRule> getRules() {
         return rules;
     }
 
     @XmlElement(name = "rule")
+    @JsonProperty("rule")
     public void setRules(final List<CFLintPluginInfo.PluginInfoRule> rules) {
         this.rules = rules;
     }
