@@ -31,6 +31,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.1'
     id 'eclipse'
     id 'signing'
+    id 'org.graalvm.buildtools.native' version '0.10.4'
     // id 'net.thebugmc.gradle.sonatype-central-portal-publisher' version '1.2.3'
 }
 
@@ -42,6 +43,22 @@ java {
     
     withJavadocJar()
     withSourcesJar()
+}
+
+graalvmNative {
+    binaries {
+        main {
+            imageName = 'cflint'
+            mainClass = 'com.cflint.cli.CFLintCLI'
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(17)
+            }
+            buildArgs.addAll(
+                '--no-fallback',
+                '-H:+ReportExceptionStackTraces'
+            )
+        }
+    }
 }
 
 // Helper functions and constants
@@ -86,6 +103,7 @@ sourceCompatibility = 1.11
 targetCompatibility = 1.11
 
 repositories {
+    mavenLocal()
     maven { 
         url = "https://oss.sonatype.org/content/repositories/snapshots" 
     }
@@ -111,9 +129,10 @@ dependencies {
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.2'
     implementation group: 'ro.fortsoft.pf4j', name: 'pf4j', version: '0.6'
     implementation group: 'org.apache.ant', name: 'ant', version: '1.10.14'
-    implementation group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.1.17'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.7'
-    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-jaxb-annotations', version: '2.12.7'
+    implementation group: 'jakarta.xml.bind', name: 'jakarta.xml.bind-api', version: '4.0.2'
+    implementation group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '4.0.5'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.18.2'
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-jakarta-xmlbind-annotations', version: '2.18.2'
     implementation(group: 'net.java.dev.stax-utils', name: 'stax-utils', version: '20070216') {
         exclude module: 'jsr173-ri'
         exclude module: 'jsr173'
@@ -122,6 +141,8 @@ dependencies {
     implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
 
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+    runtimeOnly group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.23.1'
+    implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.5'
 }
 
 test {

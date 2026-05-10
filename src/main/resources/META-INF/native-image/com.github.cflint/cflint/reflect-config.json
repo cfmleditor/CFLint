@@ -1,0 +1,405 @@
+[
+{
+  "name":"com.cflint.config.BaseConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"com.cflint.config.CFLintConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setExcludes","parameterTypes":["java.util.List"] }, {"name":"setIncludes","parameterTypes":["java.util.List"] }, {"name":"setInheritParent","parameterTypes":["boolean"] }, {"name":"setParameters","parameterTypes":["java.util.HashMap"] }, {"name":"setRules","parameterTypes":["java.util.List"] }]
+},
+{
+  "name":"com.cflint.config.CFLintConfiguration",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"com.cflint.config.CFLintPluginInfo",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setRuleGroups","parameterTypes":["java.util.List"] }, {"name":"setRules","parameterTypes":["java.util.List"] }]
+},
+{
+  "name":"com.cflint.config.CFLintPluginInfo$PluginInfoRule",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setClassName","parameterTypes":["java.lang.String"] }, {"name":"setMessages","parameterTypes":["java.util.List"] }, {"name":"setName","parameterTypes":["java.lang.String"] }, {"name":"setParameters","parameterTypes":["java.util.List"] }]
+},
+{
+  "name":"com.cflint.config.CFLintPluginInfo$PluginInfoRule$PluginMessage",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setCode","parameterTypes":["java.lang.String"] }, {"name":"setMessageText","parameterTypes":["java.lang.String"] }, {"name":"setSeverity","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"com.cflint.config.CFLintPluginInfo$PluginInfoRule$PluginParameter",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setName","parameterTypes":["java.lang.String"] }, {"name":"setValue","parameterTypes":["java.lang.Object"] }]
+},
+{
+  "name":"com.cflint.config.CFLintPluginInfo$RuleGroup",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setMessages","parameterTypes":["java.util.List"] }, {"name":"setName","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"com.cflint.plugins.core.AbortChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.AddTokenMissing",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ArgDefChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ArgHintChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ArgTypeChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ArgVarChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ArgumentNameChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ArrayNewChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.BooleanExpressionChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.BuiltInFunctionChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.CFCompareVsAssignChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.CFDebugAttributeChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.CFSwitchDefaultChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.CFXTagChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ComplexBooleanExpressionChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ComponentDisplayNameChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ComponentHintChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ComponentLengthChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ComponentNameChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.CreateObjectChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.FunctionCollisionChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.FunctionHintChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.FunctionLengthChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.FunctionTypeChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.FunctionXChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.GlobalVarChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.ImplicitScopeChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.LiteralChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.MethodNameChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.NestedCFOutput",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.OutputParmMissing",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.PackageCaseChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.PointlessChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.QueryNewChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.QueryParamChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.SelectStarChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.SimpleComplexityChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.StructKeyChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.TooManyArgumentsChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.TooManyFunctionsChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.TypedQueryNew",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.UnusedArgumentChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.UnusedLocalVarChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.VarScoper",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.plugins.core.VariableNameChecker",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.cflint.xml.stax.FindBugsCFLintResultMarshaller",
+  "queryAllPublicMethods":true
+},
+{
+  "name":"com.fasterxml.jackson.annotation.SimpleObjectIdResolver",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.fasterxml.jackson.databind.ext.Java7SupportImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.fasterxml.jackson.module.jakarta.xmlbind.deser.DataHandlerDeserializer",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.fasterxml.jackson.module.jakarta.xmlbind.ser.DataHandlerSerializer",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.ApplyTemplates",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.CallTemplate",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Choose",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.CopyOf",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.ForEach",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.If",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Otherwise",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Output",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Param",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Sort",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Stylesheet",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Template",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Text",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.ValueOf",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.Variable",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.When",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.WithParam",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.compiler.XslAttribute",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.xml.internal.stream.XMLOutputFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"die.verwandlung.cflint_to_findbugs",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"die.verwandlung.plain",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"die.verwandlung.plain$0",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"die.verwandlung.plain$1",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"die.verwandlung.plain$5",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"die.verwandlung.plain$8",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.io.Serializable",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.lang.Number",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicReference",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"net.sf.saxon.Configuration",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.apache.commons.logging.Log"
+},
+{
+  "name":"org.apache.log4j.Logger"
+},
+{
+  "name":"org.slf4j.impl.StaticLoggerBinder"
+},
+{
+  "name":"org.w3c.dom.Node"
+},
+{
+  "name":"org.w3c.dom.NodeList"
+},
+{
+  "name":"org.xmlresolver.loaders.XmlLoader",
+  "methods":[{"name":"<init>","parameterTypes":["org.xmlresolver.ResolverConfiguration"] }]
+},
+{
+  "name":"sun.security.provider.SHA2$SHA256",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+}
+]

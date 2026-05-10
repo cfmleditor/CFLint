@@ -2,9 +2,8 @@
 
 <!-- CFLint XML to FindBugs XML (https://github.com/findbugsproject/findbugs/blob/master/findbugs/etc/bugcollection.xsd) -->
 
-	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-					xmlns:java="com.cflint.xml.stax.FindBugsCFLintResultMarshaller">
-	<xsl:output method="xml" indent="yes" standalone="yes" encoding="UTF-8" omit-xml-declaration="yes"/>
+	<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+	<xsl:output method="xml" indent="yes" encoding="UTF-8" omit-xml-declaration="yes"/>
 
 	<xsl:template match="/">
 		<xsl:variable name="version" select="/issues/@version"/>
@@ -34,7 +33,7 @@
 	<xsl:template name="summary">
 		<FindBugsSummary timestamp="" num_packages="0">
 			<xsl:attribute name="timestamp">
-				<xsl:value-of select="java:formatDate(/issues/@timestamp)"/>
+				<xsl:value-of select="/issues/@timestamp"/>
 			</xsl:attribute>
 			<xsl:attribute name="total_bugs">
 				<xsl:value-of select="sum(/issues/counts/count[@code]/@count)"/>
