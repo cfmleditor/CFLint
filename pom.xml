@@ -122,8 +122,13 @@
 		</dependency>
 		<dependency>
 		  <groupId>com.fasterxml.jackson.module</groupId>
-		  <artifactId>jackson-module-jaxb-annotations</artifactId>
+		  <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
 		  <version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.saxon</groupId>
+			<artifactId>Saxon-HE</artifactId>
+			<version>12.5</version>
 		</dependency>
 		<dependency>
 			<groupId>net.java.dev.stax-utils</groupId>
