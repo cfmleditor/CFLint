@@ -50,9 +50,6 @@ graalvmNative {
         main {
             imageName = 'cflint'
             mainClass = 'com.cflint.cli.CFLintCLI'
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(17)
-            }
             buildArgs.addAll(
                 '--no-fallback',
                 '-H:+ReportExceptionStackTraces'
