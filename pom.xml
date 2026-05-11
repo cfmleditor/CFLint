@@ -1,12 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.cfmleditor</groupId>
 	<artifactId>cflint</artifactId>
-	<version>1.5.10</version>
+	<version>1.5.11</version>
 	<packaging>jar</packaging>
 
 	<name>cflint</name>
-	<description>A static code analysis tool for ColdFusion (in the spirit of FindBugs and Lint). With cflint, you are able to analyze your ColdFusion code base for code violations.</description>
+	<description
+    >A static code analysis tool for ColdFusion (in the spirit of FindBugs and Lint). With cflint, you are able to analyze your ColdFusion code base for code violations.</description>
 	<url>https://github.com/cfmleditor/cflint</url>
 	<inceptionYear>2013</inceptionYear>
 	<organization>
@@ -42,7 +47,8 @@
 
 	<scm>
 		<connection>scm:git:git@github.com:cfmleditor/cflint.git</connection>
-		<developerConnection>scm:git:git@github.com:cfmleditor/cflint.git</developerConnection>
+		<developerConnection
+        >scm:git:git@github.com:cfmleditor/cflint.git</developerConnection>
 		<url>git@github.com:cfmleditor/cflint.git</url>
 	</scm>
 
@@ -215,7 +221,8 @@
 						</manifest>
 						<manifestEntries>
 							<Bundle-Name>cflint</Bundle-Name>
-                            <Bundle-SymbolicName>com.cflint.cflint</Bundle-SymbolicName>
+                            <Bundle-SymbolicName
+                            >com.cflint.cflint</Bundle-SymbolicName>
                             <Bundle-Description>cflint</Bundle-Description>
                             <Bundle-ManifestVersion>2</Bundle-ManifestVersion>
                             <Bundle-Version>${project.version}</Bundle-Version>
@@ -257,7 +264,9 @@
 						</goals>
 						<configuration>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"
+                                >
 									<mainClass>com.cflint.cli.CFLintCLI</mainClass>
 								</transformer>
 							</transformers>
@@ -282,7 +291,8 @@
 			<configuration>
 				<dateFormat>yyyyMMdd-HHmmss</dateFormat>
 				<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-				<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+				<generateGitPropertiesFilename
+                    >${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
 				<generateGitPropertiesFile>true</generateGitPropertiesFile>
 				<failOnNoGitDirectory>false</failOnNoGitDirectory>
 				<failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
@@ -295,7 +305,8 @@
 			    <configuration>
 			        <forkCount>1</forkCount>
 			        <reuseForks>true</reuseForks>
-			        <argLine>-Xmx2g --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED -Djdk.xml.totalEntitySizeLimit=0</argLine>
+			        <argLine
+                    >-Xmx2g --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED -Djdk.xml.totalEntitySizeLimit=0</argLine>
 			    </configuration>
 			  </plugin>
 		</plugins>
