@@ -389,6 +389,11 @@
   "name":"org.slf4j.impl.StaticLoggerBinder"
 },
 {
+  "name":"org.slf4j.simple.SimpleServiceProvider",
+  "allDeclaredConstructors":true,
+  "allPublicMethods":true
+},
+{
   "name":"org.w3c.dom.Node"
 },
 {

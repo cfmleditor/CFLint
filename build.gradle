@@ -142,6 +142,7 @@ dependencies {
 
     testImplementation group: 'junit', name: 'junit', version: '4.13.2'
     runtimeOnly group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.23.1'
+    runtimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.13'
     implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.5'
 }
 

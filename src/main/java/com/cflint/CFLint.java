@@ -215,7 +215,11 @@ public class CFLint implements IErrorReporter {
     public void setupConfigAncestry(File folder) {
         final Stack<CFLintConfig> configFiles = new Stack<>();
         fileLoop: while (folder != null && folder.exists()) {
-            for (final File file : folder.listFiles()) {
+            final File[] files = folder.listFiles();
+            if (files == null) {
+                break;
+            }
+            for (final File file : files) {
                 if (file.getName().toLowerCase().equals(".cflintrc" + getEnvSuffix())) {
                     // if (verbose) {
                     //     System.out.println("read config " + file);
