@@ -271,7 +271,11 @@ public class CFLint implements IErrorReporter {
             }
             final CFLintConfiguration saveConfig = configuration;
             try {
-                for (final File file : folderOrFile.listFiles()) {
+                final File[] dirFiles = folderOrFile.listFiles();
+                if (dirFiles == null) {
+                    return;
+                }
+                for (final File file : dirFiles) {
                     if (file.getName().toLowerCase().equals(".cflintrc" + getEnvSuffix())) {
                         try {
                             if (verbose) {
@@ -287,7 +291,7 @@ public class CFLint implements IErrorReporter {
                         }
                     }
                 }
-                for (final File file : folderOrFile.listFiles()) {
+                for (final File file : dirFiles) {
                     scan(file);
                 }
             } finally {
