@@ -108,11 +108,19 @@ public class CFLint implements IErrorReporter {
     private static final String AVOID_EMPTY_FILES = "AVOID_EMPTY_FILES";
     private static final String RESOURCE_BUNDLE_NAME = "com.cflint.cflint";
 
+    // Precompiled regexes reused on every matching tag/comment/token encountered during a scan.
+    private static final Pattern TAG_CONTENT_PATTERN = Pattern.compile("<\\w+\\s(.*[^/])/?>", Pattern.MULTILINE | Pattern.DOTALL);
+    private static final Pattern QUERY_COLUMNS_PATTERN = Pattern.compile(".*SELECT\\s(\\w+(\\s*,\\s*\\w+)+)\\s+FROM\\s+.*");
+    private static final Pattern CFLINTIGNORE_PATTERN = Pattern.compile(".*\\s*@CFLintIgnore\\s+([\\w,_]+)\\s*.*", Pattern.DOTALL);
+    private static final Pattern CFLINT_LINE_IGNORE_PATTERN = Pattern.compile("cflint\\s+ignore:([\\w,]+).*");
+    private static final Pattern CFLINT_DISABLE_PATTERN = Pattern.compile(".*---\\s*CFLINT-DISABLE\\s+(.*)\\s*---.*");
+
     private CFMLTagInfo tagInfo;
     private CFMLParser cfmlParser = new CFMLParser();
     private StackHandler handler = new StackHandler();
     private BugList bugs;
     private final List<CFLintScanner> extensions = new ArrayList<>();
+    private List<CFLintStructureListener> structureListenersCache;
     private final List<String> allowedExtensions = new ArrayList<>();
     private boolean verbose = false;
     private boolean logError = false;
@@ -156,6 +164,7 @@ public class CFLint implements IErrorReporter {
     public void setConfiguration(final CFLintConfiguration configFile) throws IOException {
         configuration = configFile == null ? new CFLintConfig() : configFile;
         extensions.clear();
+        structureListenersCache = null;
         allowedExtensions.clear();
         scanProgressListeners.clear();
         exceptionListeners.clear();
@@ -464,14 +473,19 @@ public class CFLint implements IErrorReporter {
                 final String qryName = elem.getAttributeValue(CF.QUERY);
                 handler.addVariables(handler.getQueryColumns(qryName));
                 doStructureStart(elem, loopContext, CFFuncDeclStatement.class);
+            } else if (elem.getName().equalsIgnoreCase(CF.CFOUTPUT) && elem.getAttributeValue(CF.QUERY) != null) {
+                // Same as cfloop+query: <cfoutput query="q"> makes q's columns
+                // available bare for the duration of the tag.
+                handler.push(CF.CFOUTPUT);
+                final String qryName = elem.getAttributeValue(CF.QUERY);
+                handler.addVariables(handler.getQueryColumns(qryName));
             }
 
             if (elem.getName().equalsIgnoreCase(CF.CFSET) || elem.getName().equalsIgnoreCase(CF.CFIF)
                     || elem.getName().equalsIgnoreCase(CF.CFELSEIF) || elem.getName().equalsIgnoreCase(CF.CFRETURN)) {
                 scanElement(elem, context);
-                final Pattern p = Pattern.compile("<\\w+\\s(.*[^/])/?>", Pattern.MULTILINE | Pattern.DOTALL);
                 final String expr = elem.getFirstStartTag().toString();
-                final Matcher m = p.matcher(expr);
+                final Matcher m = TAG_CONTENT_PATTERN.matcher(expr);
                 if (m.matches()) {
                     final String cfscript = m.group(1).trim();
                     if (!cfscript.isEmpty()) {
@@ -575,7 +589,8 @@ public class CFLint implements IErrorReporter {
                 scanElement(elem, context);
                 for (final Entry<String, CFExpression> expression : unpackTagExpressions(elem).entrySet()) {
                     if (expression != null) {
-                        process(expression.getValue(), elem, context);
+                        process(expression.getValue(), elem, tagInfo.isAssignmentAttribute(elem, expression.getKey())
+                                ? context.subContextInAssignment() : context);
                     }
                 }
                 final List<Element> list = elem.getAllElements();
@@ -584,8 +599,7 @@ public class CFLint implements IErrorReporter {
                 final String qryName = elem.getAttributeValue(CF.NAME);
                 if (qryName != null && qryName.trim().length() > 0) {
                     final String qryText = elem.getTextExtractor().toString().toUpperCase();
-                    final Matcher m = Pattern.compile(".*SELECT\\s(\\w+(\\s*,\\s*\\w+)+)\\s+FROM\\s+.*")
-                            .matcher(qryText);
+                    final Matcher m = QUERY_COLUMNS_PATTERN.matcher(qryText);
                     final List<String> cols = new ArrayList<>();
                     if (m.matches()) {
                         cols.addAll(Arrays.asList(m.group(1).trim().split("\\s*,\\s*")));
@@ -616,6 +630,16 @@ public class CFLint implements IErrorReporter {
                 }
             } else if (elem.getName().equalsIgnoreCase(CF.CFLOOP) && elem.getAttributeValue(CF.QUERY) != null) {
                 scanElement(elem, context);
+                processStack(elem.getChildElements(), space + " ", context);
+                handler.pop();
+            } else if (elem.getName().equalsIgnoreCase(CF.CFOUTPUT) && elem.getAttributeValue(CF.QUERY) != null) {
+                scanElement(elem, context);
+                for (final Entry<String, CFExpression> expression : unpackTagExpressions(elem).entrySet()) {
+                    if (expression != null) {
+                        process(expression.getValue(), elem, tagInfo.isAssignmentAttribute(elem, expression.getKey())
+                                ? context.subContextInAssignment() : context);
+                    }
+                }
                 processStack(elem.getChildElements(), space + " ", context);
                 handler.pop();
             } else if (elem.getName().equalsIgnoreCase(CF.CFCATCH)) {
@@ -734,13 +758,16 @@ public class CFLint implements IErrorReporter {
     }
 
     private List<CFLintStructureListener> getStructureListeners(final List<CFLintScanner> extensions) {
-        final List<CFLintStructureListener> retval = new ArrayList<>();
-        for (final CFLintScanner plugin : extensions) {
-            if (plugin instanceof CFLintStructureListener) {
-                retval.add((CFLintStructureListener) plugin);
+        if (structureListenersCache == null) {
+            final List<CFLintStructureListener> retval = new ArrayList<>();
+            for (final CFLintScanner plugin : extensions) {
+                if (plugin instanceof CFLintStructureListener) {
+                    retval.add((CFLintStructureListener) plugin);
+                }
             }
+            structureListenersCache = retval;
         }
-        return retval;
+        return structureListenersCache;
     }
 
     private String shortSource(final Source source, final int line) {
@@ -1061,8 +1088,7 @@ public class CFLint implements IErrorReporter {
     protected void registerRuleOverrides(final Context context, final Token functionToken) {
         final String mlText = PrecedingCommentReader.getMultiLine(context, functionToken);
         if (mlText != null && !mlText.isEmpty()) {
-            final Pattern pattern = Pattern.compile(".*\\s*@CFLintIgnore\\s+([\\w,_]+)\\s*.*", Pattern.DOTALL);
-            final Matcher matcher = pattern.matcher(mlText);
+            final Matcher matcher = CFLINTIGNORE_PATTERN.matcher(mlText);
             if (matcher.matches()) {
                 final String ignoreCodes = matcher.group(1);
                 context.ignore(Arrays.asList(ignoreCodes.split(",\\s*")));
@@ -1090,8 +1116,7 @@ public class CFLint implements IErrorReporter {
                         && currentTok.getType() == CFSCRIPTLexer.LINE_COMMENT) {
                     final String commentText = currentTok.getText().replaceFirst("^//\\s*", "").trim();
                     if (commentText.startsWith("cflint ")) {
-                        final Pattern pattern = Pattern.compile("cflint\\s+ignore:([\\w,]+).*");
-                        final Matcher matcher = pattern.matcher(commentText);
+                        final Matcher matcher = CFLINT_LINE_IGNORE_PATTERN.matcher(commentText);
                         if (matcher.matches()) {
                             final String ignoreCodes = matcher.group(1);
                             context.ignore(Arrays.asList(ignoreCodes.split(",\\s*")));
@@ -1113,8 +1138,7 @@ public class CFLint implements IErrorReporter {
     protected void applyRuleOverrides(final Context context, final Element commentElement) {
         if (commentElement != null && CF.COMMENT.equals(commentElement.getName())) {
             final String mlText = commentElement.toString();
-            final Pattern pattern = Pattern.compile(".*\\s*@CFLintIgnore\\s+([\\w,_]+)\\s*.*", Pattern.DOTALL);
-            final Matcher matcher = pattern.matcher(mlText);
+            final Matcher matcher = CFLINTIGNORE_PATTERN.matcher(mlText);
             if (matcher.matches()) {
                 final String ignoreCodes = matcher.group(1);
                 context.ignore(Arrays.asList(ignoreCodes.split(",\\s*")));
@@ -1289,8 +1313,7 @@ public class CFLint implements IErrorReporter {
         while (elem != null) {
             final Element prevSibling = getPreviousSibling(elem);
             if (prevSibling != null && prevSibling.getName().equals(CF.COMMENT)) {
-                final Pattern p = Pattern.compile(".*---\\s*CFLINT-DISABLE\\s+(.*)\\s*---.*");
-                final Matcher m = p.matcher(prevSibling.toString().toUpperCase().trim());
+                final Matcher m = CFLINT_DISABLE_PATTERN.matcher(prevSibling.toString().toUpperCase().trim());
                 if (m.matches()) {
                     // No message codes in CFLINT-DISABLE
                     if (m.group(1).trim().length() == 0) {
@@ -1486,8 +1509,7 @@ public class CFLint implements IErrorReporter {
             if (currentTok.getChannel() == Token.HIDDEN_CHANNEL && currentTok.getType() == CFSCRIPTLexer.LINE_COMMENT) {
                 final String commentText = currentTok.getText().replaceFirst("^//\\s*", "").trim();
                 if (commentText.startsWith("cflint ")) {
-                    final Pattern pattern = Pattern.compile("cflint\\s+ignore:([\\w,]+).*");
-                    final Matcher matcher = pattern.matcher(commentText);
+                    final Matcher matcher = CFLINT_LINE_IGNORE_PATTERN.matcher(commentText);
                     if (matcher.matches() && matcher.groupCount() > 0) {
                         final String ignoreCodes = matcher.group(1);
                         if ("line".equalsIgnoreCase(ignoreCodes)) {
@@ -1595,6 +1617,7 @@ public class CFLint implements IErrorReporter {
     public void addScanner(final CFLintScanner plugin) {
         if (plugin != null) {
             extensions.add(plugin);
+            structureListenersCache = null;
             if (plugin instanceof CFLintSet) {
                 ((CFLintSet) plugin).setCFLint(this);
             }

@@ -55,6 +55,17 @@ public class CFMLTagInfo {
             if (elementName.equalsIgnoreCase(CF.CFCOOKIE) && "name".equalsIgnoreCase(attributeName)) {
                 return false;
             }
+            // cfloop's "item" attribute (used with "collection") binds a variable for the loop
+            // body, same as "index" - the dictionary just doesn't mark it with a returnVarType.
+            if (elementName.equalsIgnoreCase(CF.CFLOOP) && "item".equalsIgnoreCase(attributeName)) {
+                return true;
+            }
+            // returnVariable= is a universal custom-tag/cfmodule calling convention that stores
+            // the tag's result into the named variable - unknown (custom) tags aren't in the
+            // dictionary at all, so this can't be picked up via the parameter loop below.
+            if (CF.RETURNVARIABLE.equalsIgnoreCase(attributeName)) {
+                return true;
+            }
             final Tag tag = dictionary.getTag(elementName.toLowerCase());
             if (tag != null) {
                 for (final Object retObj : tag.getReturns()) {
@@ -66,7 +77,10 @@ public class CFMLTagInfo {
                 for (final Object paramObj : tag.getParameters()) {
                     final Parameter param = (Parameter) paramObj;
                     if (attributeName.equalsIgnoreCase(param.getName())) {
-                        return "variablename".equalsIgnoreCase(param.getReturnVarType());
+                        // Any non-blank returnVarType (variablename/query/struct/array/xml/...)
+                        // means providing this attribute stores a value into that named variable.
+                        final String returnVarType = param.getReturnVarType();
+                        return returnVarType != null && !returnVarType.trim().isEmpty();
                     }
                 }
             }

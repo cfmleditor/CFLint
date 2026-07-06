@@ -14,6 +14,8 @@ import cfml.parsing.cfscript.script.CFScriptStatement;
  */
 public class HintChecker extends CFLintScannerAdapter {
 
+    private static final Pattern HINT_PATTERN = Pattern.compile(".*\\s*@hint\\s+([\\w,_]+)\\s*.*", Pattern.DOTALL);
+
     /**
      * Check for missing hint attributes.
      *
@@ -27,8 +29,7 @@ public class HintChecker extends CFLintScannerAdapter {
         final String mlText = multiLineText == null ? null
                 : multiLineText.replaceFirst("^/\\*", "").replaceAll("\\*/$", "").trim();
         if (mlText != null && !mlText.isEmpty()) {
-            final Pattern pattern = Pattern.compile(".*\\s*@hint\\s+([\\w,_]+)\\s*.*", Pattern.DOTALL);
-            final Matcher matcher = pattern.matcher(mlText);
+            final Matcher matcher = HINT_PATTERN.matcher(mlText);
             if (matcher.matches()) {
                 String hintText = matcher.group(1);
                 if (hintText.trim().isEmpty()) {

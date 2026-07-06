@@ -67,4 +67,46 @@ public class TestCFBugs_ImplicitScope {
         assertEquals(2, result.get(0).getLine());
     }
 
+    // A prior bare assignment sourced from an implicit scope (mode = URL.mode) still lands
+    // in variables scope - later bare reads of "mode" never touch the fallback chain.
+    @Test
+    public void testPriorAssignmentFromImplicitScopeNotFlagged() throws CFLintScanException {
+        final String cfmSrc = "<cfset mode = URL.mode />\r\n<cfif mode EQ 1></cfif>";
+        CFLintResult lintresult = cfBugs.scan(cfmSrc, "test.cfm");
+        assertEquals(0, lintresult.getIssues().getOrDefault("IMPLICIT_SCOPE", java.util.Collections.emptyList()).size());
+    }
+
+    // A <cfquery name="..."> attribute defines the variable - it's a write, not a read.
+    @Test
+    public void testCfqueryNameAttributeNotFlagged() throws CFLintScanException {
+        final String cfmSrc = "<cfquery name=\"foo\">SELECT 1</cfquery>\r\n<cfif foo.recordCount GT 0></cfif>";
+        CFLintResult lintresult = cfBugs.scan(cfmSrc, "test.cfm");
+        assertEquals(0, lintresult.getIssues().getOrDefault("IMPLICIT_SCOPE", java.util.Collections.emptyList()).size());
+    }
+
+    // cfloop's item= attribute binds a variable for the loop body.
+    @Test
+    public void testCfloopItemNotFlagged() throws CFLintScanException {
+        final String cfmSrc = "<cfloop collection=\"#StructNew()#\" item=\"bar\">\r\n<cfoutput>#bar#</cfoutput>\r\n</cfloop>";
+        CFLintResult lintresult = cfBugs.scan(cfmSrc, "test.cfm");
+        assertEquals(0, lintresult.getIssues().getOrDefault("IMPLICIT_SCOPE", java.util.Collections.emptyList()).size());
+    }
+
+    // Scope keywords passed as a literal argument to a scope-introspection built-in are
+    // not a scope-searched read of an unscoped variable.
+    @Test
+    public void testScopeKeywordAsLiteralArgumentNotFlagged() throws CFLintScanException {
+        final String cfmSrc = "<cfif StructKeyExists(VARIABLES,\"username\")></cfif>";
+        CFLintResult lintresult = cfBugs.scan(cfmSrc, "test.cfm");
+        assertEquals(0, lintresult.getIssues().getOrDefault("IMPLICIT_SCOPE", java.util.Collections.emptyList()).size());
+    }
+
+    // <cfoutput query="q"> binds q's columns for the duration of the tag, same as <cfloop query="q">.
+    @Test
+    public void testCfoutputQueryColumnNotFlagged() throws CFLintScanException {
+        final String cfmSrc = "<cfquery name=\"q\">SELECT col1, col2 FROM t</cfquery>\r\n<cfoutput query=\"q\">#col1#</cfoutput>";
+        CFLintResult lintresult = cfBugs.scan(cfmSrc, "test.cfm");
+        assertEquals(0, lintresult.getIssues().getOrDefault("IMPLICIT_SCOPE", java.util.Collections.emptyList()).size());
+    }
+
 }

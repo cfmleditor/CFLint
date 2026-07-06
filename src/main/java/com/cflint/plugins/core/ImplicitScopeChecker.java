@@ -28,17 +28,20 @@ public class ImplicitScopeChecker extends CFLintScannerAdapter {
 	// private Set<String> alreadyReportedFullExpression = new HashSet<>();
 
     // LinkedHashMap is ordered.
-    protected Set<String> implicitScopedVariables = new HashSet<>();
     protected Set<String> scopedVariables = new HashSet<>();
     protected Set<String> variableScopedVariables = new HashSet<>();
-    
+
     protected Map<String, VariableInfo> unscopedAssignedVariables = new LinkedHashMap<>();
     protected Map<String, VariableInfo> implicitIdentifierVariables = new LinkedHashMap<>();
     protected Boolean isCFM = false;
 
-    private final Collection<String> scopes = Arrays.asList(CF.APPLICATION, CF.ATTRIBUTES, CF.REQUEST, CF.SERVER, CF.SESSION, CF.CFTHREAD, CF.FORM, CF.URL, CF.CGI, CF.COOKIE, CF.CLIENT, CF.FILE, CF.CFCATCH);
-    private final Collection<String> implicitscopes = Arrays.asList(CF.FORM, CF.URL, CF.CGI, CF.COOKIE, CF.CLIENT, CF.FILE, CF.CFCATCH);
+    // Scope keywords themselves (e.g. StructKeyExists(VARIABLES,"x"), StructClear(local))
+    // are never scope-searched reads - they pass the scope struct itself as a value.
+    private final Collection<String> scopes = Arrays.asList(CF.APPLICATION, CF.ATTRIBUTES, CF.REQUEST, CF.SERVER, CF.SESSION, CF.CFTHREAD, CF.FORM, CF.URL, CF.CGI, CF.COOKIE, CF.CLIENT, CF.FILE, CF.CFCATCH, CF.VARIABLES, CF.LOCAL, CF.ARGUMENTS, CF.THIS, CF.SUPER, CF.CALLER, CF.THISTAG);
     private final Collection<String> variablescopes = Arrays.asList(CF.VARIABLES);
+    // CF's built-in query-loop properties are always available bare inside a query
+    // loop/cfoutput, independent of the implicit-scope setting.
+    private final Collection<String> queryLoopProperties = Arrays.asList("currentrow", "recordcount", "columnlist");
 
 	
     /** 
@@ -55,11 +58,12 @@ public class ImplicitScopeChecker extends CFLintScannerAdapter {
         } else if (expression instanceof CFIdentifier) {
             final String name = ((CFIdentifier) expression).getName();
             if ( name != null ) {
-                final boolean checkIsScope = isScope(name);
-                final boolean checkIsInFunction = context.isInFunction();
-                final boolean checkIsCallStackVariable = checkIsInFunction == true ? context.getCallStack().checkVariable(name) : false;
+                final boolean checkIsScope = isScope(name) || isQueryLoopProperty(name);
+                // Loop item/index bindings, query-loop columns, cfcatch/cfargument names etc
+                // are pushed onto the call stack regardless of whether we're inside a function.
+                final boolean checkIsCallStackVariable = context.getCallStack().checkVariable(name);
 
-                if ( !checkIsScope && ( !checkIsInFunction || !checkIsCallStackVariable ) ) {
+                if ( !checkIsScope && !checkIsCallStackVariable ) {
                     if (context.isInAssignmentExpression() && !(expression.getParent() instanceof CFMember) ) {
                         if ( !context.isInStructKeyExpression() ) {
                             unscopedAssignedVariables.put(name.toLowerCase(), new VariableInfo(name, expression, context));
@@ -91,12 +95,7 @@ public class ImplicitScopeChecker extends CFLintScannerAdapter {
                                     : null;
             
             final String name1 = ((CFIdentifier) cfIdentifier1).getName();
-            if ( isImplicitScope(name1) && cfIdentifier2 != null ) {
-                final String name = ((CFIdentifier) cfIdentifier2).getName();
-                if ( name != null ) {
-                    implicitScopedVariables.add(name.toLowerCase());
-                }
-            } else if ( isVariableScope(name1) && cfIdentifier2 != null  ) {
+            if ( isVariableScope(name1) && cfIdentifier2 != null  ) {
                 final String name = ((CFIdentifier) cfIdentifier2).getName();
                 if ( name != null ) {
                     variableScopedVariables.add(name.toLowerCase());
@@ -108,9 +107,8 @@ public class ImplicitScopeChecker extends CFLintScannerAdapter {
                 }
             } else if ( expression.getExpressions().size() == 1 ) {
                 if ( name1 != null ) {
-                    final boolean checkIsInFunction = context.isInFunction();
-                    final boolean checkIsCallStackVariable = checkIsInFunction == true ? context.getCallStack().checkVariable(name1) : false;
-                    if ( !checkIsInFunction || !checkIsCallStackVariable ) {
+                    final boolean checkIsCallStackVariable = context.getCallStack().checkVariable(name1);
+                    if ( !checkIsCallStackVariable ) {
                         unscopedAssignedVariables.put(name1.toLowerCase(), new VariableInfo(name1,cfIdentifier1,context));
                         if ( context.isInAssignmentExpression() ) {
                             variableScopedVariables.add(name1.toLowerCase());
@@ -166,7 +164,6 @@ public class ImplicitScopeChecker extends CFLintScannerAdapter {
         if ( (isFunction && isCFM) || (!isFunction && !isCFM) ) {
             return;
         }
-        implicitScopedVariables.clear();
         implicitIdentifierVariables.clear();
         unscopedAssignedVariables.clear();
         scopedVariables.clear();
@@ -178,10 +175,14 @@ public class ImplicitScopeChecker extends CFLintScannerAdapter {
         }
         // sort by line number
         for (final VariableInfo variable : implicitIdentifierVariables.values()) {
-            // Doesn't exist as unscoped or VARIABLES, or is known as an implicit scope
-            if ( ( unscopedAssignedVariables.get(variable.name.toLowerCase()) == null
-            && variableScopedVariables.contains(variable.name.toLowerCase()) != true )
-            || implicitScopedVariables.contains(variable.name.toLowerCase()) == true ) {
+            final String lname = variable.name.toLowerCase();
+            // Flag only when nothing ever establishes this name in variables/local scope
+            // in this file/function. Bare writes always land in variables/local, so once
+            // one exists, later bare reads never touch the implicit-scope fallback chain -
+            // regardless of whether the same name is also read from url/form/etc elsewhere.
+            final boolean hasVariablesScopeWrite = unscopedAssignedVariables.get(lname) != null
+                    || variableScopedVariables.contains(lname);
+            if ( !hasVariablesScopeWrite ) {
                 context.addMessage(
                     "IMPLICIT_SCOPE",
                     variable.name,
@@ -194,16 +195,16 @@ public class ImplicitScopeChecker extends CFLintScannerAdapter {
         }
     }
 
-    private boolean isImplicitScope(final String nameVar) {
-        return nameVar != null && implicitscopes.contains(nameVar.toLowerCase().trim());
-    }
-
     private boolean isScope(final String nameVar) {
         return nameVar != null && scopes.contains(nameVar.toLowerCase().trim());
     }
 
     private boolean isVariableScope(final String nameVar) {
         return nameVar != null && variablescopes.contains(nameVar.toLowerCase().trim());
+    }
+
+    private boolean isQueryLoopProperty(final String nameVar) {
+        return nameVar != null && queryLoopProperties.contains(nameVar.toLowerCase().trim());
     }
 
     public static class VariableInfo {
