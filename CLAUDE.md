@@ -8,7 +8,9 @@ CFLint is a static code analysis tool for CFML (ColdFusion Markup Language). It 
 
 ## Build & test commands
 
-Gradle is the primary build (Maven is deprecated but still present via `pom.xml`). Requires Java 11+ (toolchain pinned to 11; GraalVM native build needs GraalVM 25, see below).
+Gradle is the primary build (Maven is deprecated but still present via `pom.xml`). Requires Java 21+ (toolchain pinned to 21; GraalVM native build needs GraalVM 25, see below).
+
+The baseline moved from 11 to 21 in 2026-08, forced by upstream: cfparser now compiles at Java 21, and class file version 65 cannot be loaded by an 11 JVM. Four places had to move together — `maven.compiler.source`/`target` in `pom.xml`, the toolchain `languageVersion` in `build.gradle`, and the runner `java-version` in both `gradle.yml` and `publish.yml`. `native-release.yml` was already on 25 and needed nothing.
 
 ```bash
 ./gradlew build              # compile + test + jar
@@ -124,4 +126,13 @@ Benchmarked against a real 5,235-file CFML codebase (`-folder` scan) in 2026-07:
 
 ### Dependency note
 
-CFLint depends on `com.github.cfmleditor:cfml.parsing` (a fork of CFParser) for CFML tokenizing/parsing and ANTLR-generated cfscript grammar (`cfml.CFSCRIPTLexer`/`CFSCRIPTParser`). Most parser-level bugs (bad tokenization, grammar gaps) live upstream in that dependency, not in this repo — check there first if a rule seems to receive a malformed tree. On this machine a source checkout of that upstream project (including `cfml.dictionary`, the tag/attribute definition XML consumed by `CFMLTagInfo`) exists at `~/development/github/cfparser` — useful for reading tag definitions directly rather than guessing from the published jar, though CFLint's `build.gradle` pulls a released artifact, not this local source.
+CFLint depends on `com.github.cfmleditor:cfml.parsing` (a fork of CFParser) for CFML tokenizing/parsing and ANTLR-generated cfscript grammar (`cfml.CFSCRIPTLexer`/`CFSCRIPTParser`). Most parser-level bugs (bad tokenization, grammar gaps) live upstream in that dependency, not in this repo — check there first if a rule seems to receive a malformed tree.
+
+**The version is declared twice** and both must move together: a `cfparser.version` property in `pom.xml`, and a hardcoded coordinate in `build.gradle`'s `dependencies` block. A Maven-only bump leaves the Gradle build — which is the primary build and what CI runs — silently resolving the old artifact. See the `bump-cfparser` skill.
+
+Two things make a bump look like it worked when it did not:
+
+- **Merging upstream publishes nothing.** cfparser only deploys to GitHub Packages on a tag push, a release, or a manual workflow dispatch, so a fix merged to cfparser `master` stays invisible here until someone publishes it. A pin was stuck on a five-month-stale `2.15.0-SNAPSHOT` this way, and the intervening `2.15.1-SNAPSHOT` had a *failed* publish run, so that coordinate never carried the code its tag suggested.
+- **Gradle caches `-SNAPSHOT` modules for 24 hours**, and the workflows restore a Gradle cache. A green CI run shortly after an upstream republish may well have compiled against the previous artifact. Confirm through a branch whose cache key differs, or resolve via Maven.
+
+Worth knowing about the parser API: `parseCFMLExpression` caches parse trees and is what this repo calls (five sites in `CFLint.java`); cfparser's own tag traversal uses the uncached `parseCFExpression`, so upstream benchmarks of "the cache" may not describe this code path. `fireStartedProcessing` constructs a fresh `CFMLParser` per file, so that cache is per-file and never accumulates across a scan. On this machine a source checkout of that upstream project (including `cfml.dictionary`, the tag/attribute definition XML consumed by `CFMLTagInfo`) exists at `~/development/github/cfparser` — useful for reading tag definitions directly rather than guessing from the published jar, though CFLint's `build.gradle` pulls a released artifact, not this local source.
