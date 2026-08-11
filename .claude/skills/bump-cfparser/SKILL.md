@@ -26,6 +26,14 @@ Confirm both moved:
 grep -rn "cfml\.parsing\|cfparser\.version" pom.xml build.gradle
 ```
 
+Grep the full coordinate rather than a bare version number. `commons-io:2.15.1` in `build.gradle`
+matches a naive `2\.15\.` search and is unrelated, and the tracked `pom.xml.versionsBackup` still
+pins a long-dead `2.6.0` under the old `com.github.cfparser` groupId — no build reads it, but it
+is a decoy every time someone greps for versions here.
+
+`CHANGELOG.md` needs no edit: it is generated from git history by the `gitChangelog` Gradle task,
+so a hand-written entry is overwritten on the next run.
+
 ## 2. The new version has to actually exist
 
 cfparser publishes to GitHub Packages **only** on a tag push, a release, or a manual workflow
@@ -63,6 +71,22 @@ mvn clean test        # 675 tests
 
 Prefer `mvn clean test` when checking a fresh upstream artifact. It resolves independently of
 Gradle's cache and gives a trustworthy answer.
+
+**Read a resolution failure carefully — it probably names the wrong repository.** The
+`allow-snapshots` profile in `pom.xml` is `activeByDefault` and adds Sonatype's snapshot
+repository, which Maven tries *before* the `github` repository that actually hosts cfparser. So an
+artifact that simply has not been published yet surfaces as a Sonatype error, and a network or
+proxy problem surfaces the same way. Neither message means what it appears to.
+
+To tell "not published" apart from "cannot reach the repository", re-resolve pinning a version you
+know exists:
+
+```bash
+mvn dependency:get -Dartifact=com.github.cfmleditor:cfml.parsing:2.15.2-SNAPSHOT
+```
+
+If the known-good version fails identically, the environment is the problem and the run says
+nothing about publication — go back to checking the upstream workflow run instead.
 
 The Gradle build may not run in every environment: the toolchain pins `JvmVendorSpec.ADOPTIUM`, so
 a non-Temurin JDK fails unless the foojay resolver can download one. That is an environment
