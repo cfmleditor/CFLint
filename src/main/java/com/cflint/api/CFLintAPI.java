@@ -113,8 +113,8 @@ public class CFLintAPI {
     }
 
     public CFLintResult scan(final String source, final String filename) throws CFLintScanException {
-        final File starterFile = new File(filename);
-        if (starterFile.exists() && starterFile.getParentFile().exists()) {
+        final File starterFile = new File(filename).getAbsoluteFile();
+        if (starterFile.exists() && starterFile.getParentFile() != null && starterFile.getParentFile().exists()) {
             cflint.setupConfigAncestry(starterFile.getParentFile());
         }
         cflint.process(source, filename);

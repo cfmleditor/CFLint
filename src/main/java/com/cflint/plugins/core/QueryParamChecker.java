@@ -1,7 +1,9 @@
 package com.cflint.plugins.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.StringReader;
@@ -18,7 +20,15 @@ import net.htmlparser.jericho.Element;
 
 public class QueryParamChecker extends CFLintScannerAdapter {
 
-    
+    private static final Pattern SETSQL_HASH_PATTERN = Pattern.compile(".*#(?:##)?([^#]+)(?:##)?#($|[^#]).*", Pattern.DOTALL);
+    private static final Pattern QUERYPARAM_HASH_PATTERN = Pattern.compile("#(?:##)?([^#]+)(?:##)?#($|[^#])", Pattern.DOTALL);
+
+    // allowVariableExpression is a per-config regex (usually the same value scan-wide, sometimes
+    // overridden per-folder via .cflintrc) - cache the compiled Pattern per distinct config value
+    // instead of recompiling it for every <cfquery> element encountered.
+    private final Map<String, Pattern> allowVariableExpressionPatternCache = new HashMap<>();
+
+
     /** 
      * @param expression expression
      * @param context context
@@ -31,8 +41,7 @@ public class QueryParamChecker extends CFLintScannerAdapter {
             if ("setSql".equalsIgnoreCase(functionExpression.getFunctionName()) || "queryExecute".equalsIgnoreCase(functionExpression.getFunctionName())
                 && !functionExpression.getArgs().isEmpty()) {
                 final CFExpression argsExpression = functionExpression.getArgs().get(0);
-                final Pattern p = Pattern.compile(".*#(?:##)?([^#]+)(?:##)?#($|[^#]).*", Pattern.DOTALL);
-                if (p.matcher(argsExpression.Decompile(0)).matches()) {
+                if (SETSQL_HASH_PATTERN.matcher(argsExpression.Decompile(0)).matches()) {
                     context.addMessage("QUERYPARAM_REQ", functionExpression.getName());
                 }
             }
@@ -47,7 +56,8 @@ public class QueryParamChecker extends CFLintScannerAdapter {
             final String allowVariableExpression = context.getConfiguration().getParameter(this,"allowVariableExpression");
             Pattern allowVariableExpressionPattern = null;
             if ( !"".equals(allowVariableExpression) ) {
-                allowVariableExpressionPattern = Pattern.compile(allowVariableExpression,Pattern.DOTALL);
+                allowVariableExpressionPattern = allowVariableExpressionPatternCache.computeIfAbsent(
+                        allowVariableExpression, expr -> Pattern.compile(expr, Pattern.DOTALL));
             }
             final String allowLineExpression = context.getConfiguration().getParameter(this,"allowLineExpression");
             //Todo : cfparser/Jericho does not support parsing out the cfqueryparam very well.
@@ -55,7 +65,7 @@ public class QueryParamChecker extends CFLintScannerAdapter {
             content = content.replaceAll("<[cC][fF][qQ][uU][eE][rR][yY][pP][aA][rR][aA][mM][^>]*>", "");
             if (content.indexOf('#') >= 0) {
                 final List<Integer> ignoreLines = determineIgnoreLines(content, context.startLine());
-                final Matcher matcher = Pattern.compile("#(?:##)?([^#]+)(?:##)?#($|[^#])",Pattern.DOTALL).matcher(content);
+                final Matcher matcher = QUERYPARAM_HASH_PATTERN.matcher(content);
                 while (matcher.find()) {
                     if (matcher.groupCount() >= 1) {
                         int currentline = context.startLine() + countNewLinesUpTo(content, matcher.start());

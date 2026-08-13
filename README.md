@@ -45,6 +45,24 @@ in the cflint directory
 
 Alternatively, import the CFLint codebase into the IDE of your choice and use its respectively Gradle/Maven integration. This should work out of the box for Eclipse and IntelliJ users.
 
+### Building a native binary
+
+CFLint can be compiled to a native binary using GraalVM Native Image. This produces a standalone executable with faster startup and lower memory usage.
+
+1. Install GraalVM CE 21+ (e.g. via [SDKMAN!](https://sdkman.io/)):
+
+```cmd
+sdk install java 21.0.2-graalce
+```
+
+2. Build the native binary:
+
+```cmd
+JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew nativeCompile
+```
+
+The binary will be at `build/native/nativeCompile/cflint`.
+
 ## Using CFLint - Quickstart Guide
 
 Get the latest version from [Maven Central](https://search.maven.org/search?q=cflint) or the [CFLint GitHub release page](https://github.com/cflint/CFLint/releases) or build the project.

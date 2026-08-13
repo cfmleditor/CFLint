@@ -27,6 +27,11 @@ public class ValidName {
      */
     public static final int MIN_ARGUMENT_LENGTH = 3;
 
+    private static final Pattern VALID_CHARS_PATTERN = Pattern.compile("^[A-Za-z0-9_]+$");
+    // [A-Z0-9]{2,5} catch names like productID, phone4G, requestURL etc etc
+    private static final Pattern CAMEL_CASE_PATTERN = Pattern.compile("^[a-z0-9]+([A-Z]{1,5}[a-z0-9]+)*([A-Z0-9]{2,5}){0,1}[A-Z]?$");
+    private static final Pattern PASCAL_CASE_PATTERN = Pattern.compile("^([A-Z]{1,5}[a-z0-9]+)+([A-Z0-9]{2,5}){0,1}[A-Z]?$");
+
     /**
      * Default maximum length of an argument name.
      */
@@ -157,8 +162,7 @@ public class ValidName {
     	if(name == null) {
     		return true;
     	}
-        final Pattern valid = Pattern.compile("^[A-Za-z0-9_]+$");
-        return valid.matcher(name).matches();
+        return VALID_CHARS_PATTERN.matcher(name).matches();
     }
 
     /**
@@ -197,9 +201,7 @@ public class ValidName {
     	if(name == null) {
     		return false;
     	}
-        // [A-Z0-9]{2,5} catch names like productID, phone4G, requestURL etc etc
-        final Pattern valid = Pattern.compile("^[a-z0-9]+([A-Z]{1,5}[a-z0-9]+)*([A-Z0-9]{2,5}){0,1}[A-Z]?$");
-        return valid.matcher(name).matches();
+        return CAMEL_CASE_PATTERN.matcher(name).matches();
     }
 
     /**
@@ -212,8 +214,7 @@ public class ValidName {
     	if(name == null) {
     		return false;
     	}
-        final Pattern valid = Pattern.compile("^([A-Z]{1,5}[a-z0-9]+)+([A-Z0-9]{2,5}){0,1}[A-Z]?$");
-        return valid.matcher(name).matches();
+        return PASCAL_CASE_PATTERN.matcher(name).matches();
     }
 
     /**

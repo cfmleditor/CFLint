@@ -1,0 +1,59 @@
+name: Native Binary Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-native:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: amd64
+            artifact: cflint-linux-amd64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+            artifact: cflint-linux-aarch64
+          - os: macos-13
+            arch: amd64
+            artifact: cflint-macos-amd64
+          - os: macos-latest
+            arch: aarch64
+            artifact: cflint-macos-aarch64
+          - os: windows-latest
+            arch: amd64
+            artifact: cflint-windows-amd64.exe
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm-community'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build native image
+        run: ./gradlew nativeCompile
+        env:
+          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: mv build/native/nativeCompile/cflint build/native/nativeCompile/${{ matrix.artifact }}
+
+      - name: Rename binary (Windows)
+        if: runner.os == 'Windows'
+        run: mv build/native/nativeCompile/cflint.exe build/native/nativeCompile/${{ matrix.artifact }}
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/native/nativeCompile/${{ matrix.artifact }}

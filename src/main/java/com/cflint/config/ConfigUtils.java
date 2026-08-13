@@ -13,10 +13,10 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ import com.cflint.config.CFLintPluginInfo.PluginInfoRule.PluginParameter;
 import com.cflint.plugins.CFLintScanner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule;
 
 public class ConfigUtils {
 
@@ -110,7 +110,7 @@ public class ConfigUtils {
             throws IOException {
         final StringWriter sw = new StringWriter();
         final ObjectMapper objectMapper = new ObjectMapper();
-        final JaxbAnnotationModule module = new JaxbAnnotationModule();
+        final JakartaXmlBindAnnotationModule module = new JakartaXmlBindAnnotationModule();
         objectMapper.registerModule(module);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.writeValue(sw, obj);
@@ -120,7 +120,7 @@ public class ConfigUtils {
     public static <E> E unmarshalJson(final InputStream inputStream, final Class<E> expectedClass)
             throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
-        final JaxbAnnotationModule module = new JaxbAnnotationModule();
+        final JakartaXmlBindAnnotationModule module = new JakartaXmlBindAnnotationModule();
         objectMapper.registerModule(module);
         // AnnotationIntrospector introspector = new
         // JaxbAnnotationIntrospector();
@@ -136,7 +136,7 @@ public class ConfigUtils {
     public static <E> E unmarshalJson(final Reader reader, final Class<E> expectedClass)
             throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
-        final JaxbAnnotationModule module = new JaxbAnnotationModule();
+        final JakartaXmlBindAnnotationModule module = new JakartaXmlBindAnnotationModule();
         objectMapper.registerModule(module);
         return objectMapper.readValue(reader, expectedClass);
     }

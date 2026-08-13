@@ -28,20 +28,35 @@ buildscript {
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.1'
+    id 'jacoco'
     id 'eclipse'
     id 'signing'
+    id 'org.graalvm.buildtools.native' version '1.1.3'
     // id 'net.thebugmc.gradle.sonatype-central-portal-publisher' version '1.2.3'
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(21)
         vendor = JvmVendorSpec.ADOPTIUM
     }
     
     withJavadocJar()
     withSourcesJar()
+}
+
+graalvmNative {
+    binaries {
+        main {
+            imageName = 'cflint'
+            mainClass = 'com.cflint.cli.CFLintCLI'
+            buildArgs.addAll(
+                '--no-fallback',
+                '-H:+ReportExceptionStackTraces',
+                '--initialize-at-build-time=cfml.dictionary'
+            )
+        }
+    }
 }
 
 // Helper functions and constants
@@ -77,15 +92,12 @@ apply plugin: "signing"
 
 apply plugin: 'java'
 apply plugin: 'maven-publish'
-apply from: 'cobertura.gradle'
 //apply from: 'deploy.gradle'
 apply plugin: 'se.bjurr.gitchangelog.git-changelog-gradle-plugin'
 // apply plugin: "net.thebugmc.gradle.sonatype-central-portal-publisher"
 
-sourceCompatibility = 1.11
-targetCompatibility = 1.11
-
 repositories {
+    mavenLocal()
     maven { 
         url = "https://oss.sonatype.org/content/repositories/snapshots" 
     }
@@ -107,21 +119,25 @@ repositories {
     }
 }
 dependencies {
-    implementation group: 'com.github.cfmleditor', name: 'cfml.parsing', version: '2.15.0-SNAPSHOT'
-    implementation group: 'commons-cli', name: 'commons-cli', version: '1.2'
-    implementation group: 'ro.fortsoft.pf4j', name: 'pf4j', version: '0.6'
-    implementation group: 'org.apache.ant', name: 'ant', version: '1.10.14'
-    implementation group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.1.17'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.7'
-    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-jaxb-annotations', version: '2.12.7'
-    implementation(group: 'net.java.dev.stax-utils', name: 'stax-utils', version: '20070216') {
+    implementation 'com.github.cfmleditor:cfml.parsing:2.16.0-SNAPSHOT'
+    implementation 'commons-cli:commons-cli:1.2'
+    implementation 'ro.fortsoft.pf4j:pf4j:0.6'
+    implementation 'org.apache.ant:ant:1.10.14'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.18.2'
+    implementation 'com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.18.2'
+    implementation('net.java.dev.stax-utils:stax-utils:20070216') {
         exclude module: 'jsr173-ri'
         exclude module: 'jsr173'
     }
     // https://mvnrepository.com/artifact/commons-io/commons-io
-    implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
+    implementation 'commons-io:commons-io:2.15.1'
 
-    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+    testImplementation 'junit:junit:4.13.2'
+    runtimeOnly 'org.apache.logging.log4j:log4j-to-slf4j:2.23.1'
+    runtimeOnly 'org.slf4j:slf4j-simple:2.0.13'
+    implementation 'net.sf.saxon:Saxon-HE:12.5'
 }
 
 test {
@@ -130,6 +146,14 @@ test {
         showExceptions = true
         events "skipped", "failed", "standardError"
         showStandardStreams = true
+    }
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
     }
 }
 
@@ -162,9 +186,7 @@ task fatJar(type: Jar) {
     with jar
 }
 
-artifacts {
-    archives fatJar
-}
+assemble.dependsOn fatJar
 
 task gitChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
     group="documentation"

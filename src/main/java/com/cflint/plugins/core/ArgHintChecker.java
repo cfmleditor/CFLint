@@ -24,6 +24,8 @@ import net.htmlparser.jericho.Element;
  */
 public class ArgHintChecker extends CFLintScannerAdapter {
 
+    private static final Pattern ANNOTATION_PATTERN = Pattern.compile("^.*\\s*@(\\w+)\\s+(.*+)$");
+
     /**
      * Parse a CF argument tag to see if the argument hint is missing.
      */
@@ -69,12 +71,11 @@ public class ArgHintChecker extends CFLintScannerAdapter {
      * @param annotations function argumnet hints.
      */
     private void readCommentAnnotations(final String mlText, final Map<String, String> annotations) {
-        final Pattern pattern = Pattern.compile("^.*\\s*@(\\w+)\\s+(.*+)$");
         BufferedReader reader = new BufferedReader(new StringReader(mlText));
         try {
             String line = reader.readLine();
             while (line != null) {
-                final Matcher matcher = pattern.matcher(line.trim());
+                final Matcher matcher = ANNOTATION_PATTERN.matcher(line.trim());
                 if (matcher.matches()) {
                     annotations.put(matcher.group(1).trim().toLowerCase(), matcher.group(2).trim());
                 }

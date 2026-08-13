@@ -12,7 +12,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.cli.*;
@@ -37,6 +37,11 @@ public class CFLintCLI {
     private static final String CFLINT_USAGE = "java -jar CFLint-" + Version.getVersion() + "-all.jar";
     private static final String FINDBUGS = "findbugs";
     private static final String DISPLAY_THIS_HELP = "display this help";
+
+    // Compile-time timing instrumentation switch - javac dead-code-eliminates the guarded
+    // blocks below when this is false, so it costs nothing in a normal build. Flip to true
+    // and rebuild to get a stderr breakdown of dictionary/config setup vs. actual scan time.
+    private static final boolean DEBUG_TIMING = false;
 
     private final List<String> folder = new ArrayList<>();
     private String filterFile = null;
@@ -352,7 +357,11 @@ public class CFLintCLI {
 
     private void execute(final CFLintConfiguration cfLintConfig) throws IOException, TransformerException,
             MarshallerException, JAXBException, CFLintScanException, CFLintConfigurationException {
+        final long __t0 = DEBUG_TIMING ? System.nanoTime() : 0;
         final CFLintAPI api = new CFLintAPI(cfLintConfig);
+        if (DEBUG_TIMING) {
+            System.err.println("DEBUG_TIMING: CFLintAPI construction = " + (System.nanoTime() - __t0) / 1e6 + "ms");
+        }
         api.setVerbose(verbose);
         api.setLogError(logerror);
         api.setQuiet(quiet);
@@ -370,6 +379,7 @@ public class CFLintCLI {
         }
         api.setFilterFile(filterFile);
 
+        final long __t1 = DEBUG_TIMING ? System.nanoTime() : 0;
         CFLintResult lintResult = null;
         if (stdIn) {
             final StringWriter source = new StringWriter();
@@ -377,6 +387,9 @@ public class CFLintCLI {
             lintResult = api.scan(source.toString(), stdInFile);
         } else {
             lintResult = api.scan(folder);
+        }
+        if (DEBUG_TIMING) {
+            System.err.println("DEBUG_TIMING: scan = " + (System.nanoTime() - __t1) / 1e6 + "ms");
         }
         if (xmlOutput) {
             try (final Writer xmlwriter = stdOut ? new OutputStreamWriter(System.out)
