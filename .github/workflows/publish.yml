@@ -23,6 +23,12 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      # The built-in Actions token, not a PAT. It covers both halves of this job: reading
+      # cfml.parsing from cfmleditor/cfparser, whose packages are public and so accept any
+      # valid token, and writing cflint to this repository, which the packages: write
+      # permission above grants. gradle.yml already resolves cfparser this way. The
+      # GH_USERNAME/GH_TOKEN pair this replaced authenticated in May and returns 401 now,
+      # which is what an expired PAT looks like.
       - name: Configure Maven for GitHub Packages
         run: |
           mkdir -p $HOME/.m2
@@ -31,8 +37,8 @@ jobs:
             <servers>
               <server>
                 <id>github</id>
-                <username>${{ secrets.GH_USERNAME }}</username>
-                <password>${{ secrets.GH_TOKEN }}</password>
+                <username>${{ github.actor }}</username>
+                <password>${{ github.token }}</password>
               </server>
             </servers>
           </settings>
