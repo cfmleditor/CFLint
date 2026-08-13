@@ -116,6 +116,10 @@ Configuration is resolved through a chain of `CFLintConfiguration` implementatio
 - `com.cflint.ant.CFLintTask` — an Ant task wrapper.
 - Output formats (`HTMLOutput`, `JSONOutput`, `XMLOutput`, `TextOutput`, `com.cflint.xml.stax.*` marshallers) all render from the same `BugList`/`CFLintStats` produced by a scan; the FindBugs XML flavor is produced via XSLT (`src/main/resources/findbugs/cflint-to-findbugs.xsl`) rather than a marshaller class.
 
+### JDK 25 startup crash (fixed)
+
+`com.cflint.CFLint` has a static initializer that raises `jdk.xml.totalEntitySizeLimit` to 10,000,000 (unless the caller already set it) before any parsing happens. Without it, on JDK 25 (confirmed on GraalVM CE 25.0.2, both the plain jar and native builds), the very first `new CFLint(...)`/`CFLintAPI` construction throws `SAXParseException: JAXP00010004 ... accumulated size of entities is "100,003" ... exceeded ... "100,000"` while loading the bundled `cfml.dictionary` XML resources (`cfml.dictionary.SyntaxDictionary.loadDictionary`, e.g. `parameter_html_event_mouse.ixml`) — this happens at startup regardless of what's being scanned, not per-file. JDK 21 doesn't hit this (its effective default is higher); something about JDK 25's XML defaults tightened enough to trip on this bundled resource's entity expansion, which sits just barely over the old 100,000 threshold. This is a real fix, not a workaround — it's in `com.cflint.CFLint` itself, so it applies to every entry point (CLI, `CFLintAPI`, Ant task) and both the Gradle and Maven builds, without needing a `-D` flag at invocation time. The right long-term fix is probably upstream in `cfml.dictionary` (its XML likely over-uses entity references), but this unblocks all consumers of this library in the meantime.
+
 ### Performance
 
 Benchmarked against a real 5,235-file CFML codebase (`-folder` scan) in 2026-07:

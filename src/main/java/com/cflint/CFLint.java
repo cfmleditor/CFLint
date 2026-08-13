@@ -100,6 +100,65 @@ import net.htmlparser.jericho.Source;
 
 public class CFLint implements IErrorReporter {
 
+    static {
+        // The bundled cfml.dictionary XML resources (parsed by CFMLParser below) accumulate
+        // just over 100,000 chars of entity expansion, which JDK 25 rejects under its default
+        // jdk.xml.totalEntitySizeLimit - raise it unless the caller has set their own value.
+        if (System.getProperty("jdk.xml.totalEntitySizeLimit") == null) {
+            System.setProperty("jdk.xml.totalEntitySizeLimit", "10000000");
+        }
+    }
+
+    // Compile-time timing instrumentation switch - see CFLintCLI.DEBUG_TIMING. javac
+    // dead-code-eliminates the guarded blocks below when this is false.
+    private static final boolean DEBUG_TIMING = false;
+    // Cumulative nanos spent inside each plugin's element()/expression(), keyed by simple class
+    // name. Only ever populated/read when DEBUG_TIMING is true.
+    private final Map<String, Long> pluginNanos = new LinkedHashMap<>();
+
+    private long antlrExprNanos;
+    private int antlrExprCalls;
+    private final List<String> antlrExprSamples = new ArrayList<>();
+    private final Map<String, Integer> antlrExprCounts = new LinkedHashMap<>();
+
+    private void debugTimingDump() {
+        pluginNanos.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .forEach(e -> System.err.println("DEBUG_TIMING:       plugin " + e.getKey() + " = " + e.getValue() / 1e6 + "ms"));
+        pluginNanos.clear();
+        System.err.println("DEBUG_TIMING:       cfmlParser.parseCFMLExpression(cfscript) [tag branch] = "
+                + antlrExprNanos / 1e6 + "ms over " + antlrExprCalls + " calls");
+        antlrExprNanos = 0;
+        antlrExprCalls = 0;
+
+        // length histogram
+        final Map<String, Integer> lenBuckets = new LinkedHashMap<>();
+        for (final String s : antlrExprSamples) {
+            final int len = s.length();
+            final String bucket = len <= 10 ? "0-10" : len <= 20 ? "11-20" : len <= 40 ? "21-40" : len <= 80 ? "41-80" : "81+";
+            lenBuckets.merge(bucket, 1, Integer::sum);
+        }
+        System.err.println("DEBUG_TIMING:       expr length histogram = " + lenBuckets);
+
+        // duplicate analysis
+        final long distinct = antlrExprCounts.size();
+        System.err.println("DEBUG_TIMING:       expr calls = " + antlrExprSamples.size() + ", distinct = " + distinct);
+        final long bareIdentifierCalls = antlrExprSamples.stream().filter(s -> s.matches("[A-Za-z_][A-Za-z0-9_]*")).count();
+        final long bareIdentifierDistinct = antlrExprCounts.keySet().stream().filter(s -> s.matches("[A-Za-z_][A-Za-z0-9_]*")).count();
+        System.err.println("DEBUG_TIMING:       bare identifier calls = " + bareIdentifierCalls + " (" + bareIdentifierDistinct + " distinct)");
+        antlrExprCounts.entrySet().stream()
+                .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                .limit(15)
+                .forEach(e -> System.err.println("DEBUG_TIMING:         x" + e.getValue() + "  " + e.getKey()));
+
+        // sample of raw expressions (first 20)
+        antlrExprSamples.stream().limit(20)
+                .forEach(s -> System.err.println("DEBUG_TIMING:         sample: " + s));
+
+        antlrExprSamples.clear();
+        antlrExprCounts.clear();
+    }
+
     // constants
     private static final String FILE_ERROR = "FILE_ERROR";
     private static final String PARSE_ERROR = "PARSE_ERROR";
@@ -216,8 +275,16 @@ public class CFLint implements IErrorReporter {
             ScanningProgressMonitorLookAhead.createInstance(this, folderName, progressUsesThread).startPreScan();
         }
         final File starterFile = new File(folderName);
+        final long __tAncestry = DEBUG_TIMING ? System.nanoTime() : 0;
         setupConfigAncestry(starterFile.getAbsoluteFile().getParentFile());
+        if (DEBUG_TIMING) {
+            System.err.println("DEBUG_TIMING:   setupConfigAncestry = " + (System.nanoTime() - __tAncestry) / 1e6 + "ms");
+        }
+        final long __tScan = DEBUG_TIMING ? System.nanoTime() : 0;
         scan(starterFile);
+        if (DEBUG_TIMING) {
+            System.err.println("DEBUG_TIMING:   scan(File) = " + (System.nanoTime() - __tScan) / 1e6 + "ms");
+        }
         fireClose();
     }
 
@@ -350,12 +417,17 @@ public class CFLint implements IErrorReporter {
                 reportRule(null, null, context, null, new ContextMessage(AVOID_EMPTY_FILES, null));
             } else {
                 lineOffsets = getLineOffsets(src.split("\n"));
+                final long __tTagParse = DEBUG_TIMING ? System.nanoTime() : 0;
                 final CFMLSource cfmlSource = new CFMLSource(src.contains("<!---") ? CommentReformatting.wrap(src) : src);
                 final ParserTag firstTag = getFirstTagQuietly(cfmlSource);
                 final List<Element> elements = new ArrayList<>();
                 if (firstTag != null) {
                     elements.addAll(cfmlSource.getChildElements());
                 }
+                if (DEBUG_TIMING) {
+                    System.err.println("DEBUG_TIMING:     tagParse(" + filename + ") = " + (System.nanoTime() - __tTagParse) / 1e6 + "ms");
+                }
+                final long __tRuleWalk = DEBUG_TIMING ? System.nanoTime() : 0;
                 if (isComponentOrInterfaceScript(src, elements)) {
                     // Check if pure cfscript
                     final CFScriptStatement scriptStatement = cfmlParser.parseScript(src);
@@ -363,6 +435,10 @@ public class CFLint implements IErrorReporter {
                     process(scriptStatement, context);
                 } else {
                     processStack(elements, " ", filename, null);
+                }
+                if (DEBUG_TIMING) {
+                    System.err.println("DEBUG_TIMING:     ruleWalk(" + filename + ") = " + (System.nanoTime() - __tRuleWalk) / 1e6 + "ms");
+                    debugTimingDump();
                 }
             }
             beforeEndFile(filename, new Context(filename, null, null, false, handler,configuration));
@@ -490,7 +566,16 @@ public class CFLint implements IErrorReporter {
                     final String cfscript = m.group(1).trim();
                     if (!cfscript.isEmpty()) {
                         try {
+                            if (DEBUG_TIMING) {
+                                antlrExprSamples.add(cfscript);
+                                antlrExprCounts.merge(cfscript, 1, Integer::sum);
+                            }
+                            final long __tAntlr = DEBUG_TIMING ? System.nanoTime() : 0;
                             final CFExpression expression = cfmlParser.parseCFMLExpression(cfscript, this);
+                            if (DEBUG_TIMING) {
+                                antlrExprNanos += System.nanoTime() - __tAntlr;
+                                antlrExprCalls++;
+                            }
                             if (expression != null) {
                                 process(expression, elem, context);
                             }
@@ -744,6 +829,7 @@ public class CFLint implements IErrorReporter {
 
     protected void scanElement(final Element elem, final Context context) {
         for (final CFLintScanner plugin : extensions) {
+            final long __tPlugin = DEBUG_TIMING ? System.nanoTime() : 0;
             try {
                 plugin.element(elem, context, bugs);
                 for (final ContextMessage message : context.getMessages()) {
@@ -753,6 +839,10 @@ public class CFLint implements IErrorReporter {
             } catch (final Exception e) {
                 printException(e);
                 reportRule(elem, null, context, plugin, PLUGIN_ERROR);
+            }
+            if (DEBUG_TIMING) {
+                final String key = plugin.getClass().getSimpleName();
+                pluginNanos.merge(key, System.nanoTime() - __tPlugin, Long::sum);
             }
         }
     }
@@ -1048,6 +1138,7 @@ public class CFLint implements IErrorReporter {
             return;
         }
         for (final CFLintScanner plugin : extensions) {
+            final long __tPlugin = DEBUG_TIMING ? System.nanoTime() : 0;
             try {
                 plugin.expression(expression, context, bugs);
                 for (final ContextMessage message : context.getMessages()) {
@@ -1057,6 +1148,10 @@ public class CFLint implements IErrorReporter {
             } catch (final Exception e) {
                 printException(e);
                 reportRule(elem, expression, context, plugin, PLUGIN_ERROR);
+            }
+            if (DEBUG_TIMING) {
+                final String key = plugin.getClass().getSimpleName();
+                pluginNanos.merge(key, System.nanoTime() - __tPlugin, Long::sum);
             }
         }
     }
@@ -1160,6 +1255,7 @@ public class CFLint implements IErrorReporter {
         if (expression != null) {
             final Context context = oldcontext.subContext(elem);
             for (final CFLintScanner plugin : extensions) {
+                final long __tPlugin = DEBUG_TIMING ? System.nanoTime() : 0;
                 try {
                     plugin.expression(expression, context, bugs);
                     for (final ContextMessage message : context.getMessages()) {
@@ -1169,6 +1265,10 @@ public class CFLint implements IErrorReporter {
                 } catch (final Exception e) {
                     printException(e);
                     reportRule(elem, expression, context, plugin, PLUGIN_ERROR);
+                }
+                if (DEBUG_TIMING) {
+                    final String key = plugin.getClass().getSimpleName();
+                    pluginNanos.merge(key, System.nanoTime() - __tPlugin, Long::sum);
                 }
             }
             // Handle a few expression types in a special fashion.

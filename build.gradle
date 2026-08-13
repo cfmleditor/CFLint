@@ -52,7 +52,8 @@ graalvmNative {
             mainClass = 'com.cflint.cli.CFLintCLI'
             buildArgs.addAll(
                 '--no-fallback',
-                '-H:+ReportExceptionStackTraces'
+                '-H:+ReportExceptionStackTraces',
+                '--initialize-at-build-time=cfml.dictionary'
             )
         }
     }
