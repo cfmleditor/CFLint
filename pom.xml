@@ -81,7 +81,7 @@
 		<maven.compiler.target>21</maven.compiler.target>
 		<maven.compiler.proc>none</maven.compiler.proc>
 
-		<cfparser.version>2.16.0</cfparser.version>
+		<cfparser.version>2.16.1-SNAPSHOT</cfparser.version>
 		<jackson.version>2.18.9</jackson.version>
 		<slf4j.version>1.7.21</slf4j.version>
 	</properties>
