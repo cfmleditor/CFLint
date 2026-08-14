@@ -82,7 +82,7 @@
 		<maven.compiler.proc>none</maven.compiler.proc>
 
 		<cfparser.version>2.16.0</cfparser.version>
-		<jackson.version>2.18.6</jackson.version>
+		<jackson.version>2.18.8</jackson.version>
 		<slf4j.version>1.7.21</slf4j.version>
 	</properties>
 
