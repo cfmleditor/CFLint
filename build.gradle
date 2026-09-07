@@ -120,6 +120,15 @@ repositories {
         }
     }
 }
+
+// cfparser is tracked as a SNAPSHOT. Gradle treats that as a changing module and caches
+// it for 24 hours, and the CI workflows restore a Gradle cache -- so a green run shortly
+// after a cfparser republish can have tested the *previous* artifact. Re-resolve every
+// time; it is one small jar, and a stale one is worth far more than the download.
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
     implementation 'com.github.cfmleditor:cfml.parsing:2.16.1-SNAPSHOT'
     implementation 'commons-cli:commons-cli:1.2'
