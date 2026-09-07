@@ -77,8 +77,12 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<!-- The main artifact is Java 11 so it loads on every supported runtime; the
+		     jdk21 classifier below is the same source compiled at 21. release rather
+		     than source/target because it checks the API surface, not just the
+		     language level. -->
+		<maven.compiler.release>11</maven.compiler.release>
+		<jdk21.release>21</jdk21.release>
 		<maven.compiler.proc>none</maven.compiler.proc>
 
 		<cfparser.version>2.16.1-SNAPSHOT</cfparser.version>
@@ -210,6 +214,28 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Two artifacts from one source tree, mirroring cfparser. default-compile
+			     emits Java 11 into target/classes for the main jar and the shaded -all
+			     jar; compile-jdk21 emits Java 21 into target/classes-jdk21 for the
+			     jdk21 classifier. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<executions>
+					<execution>
+						<id>compile-jdk21</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<release>${jdk21.release}</release>
+							<outputDirectory>${project.build.directory}/classes-jdk21</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -229,11 +255,48 @@
 						</manifestEntries>
 					</archive>
 				</configuration>
+				<executions>
+					<execution>
+						<id>jar-jdk21</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>jdk21</classifier>
+							<classesDirectory>${project.build.directory}/classes-jdk21</classesDirectory>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>
 				<executions>
+					<execution>
+						<id>copy-resources-jdk21</id>
+						<!-- classes-jdk21 holds only .class files, so the classified jar
+						     needs the resources copied in. Kept at process-classes for
+						     the reason cfparser's pom documents: setting outputDirectory
+						     on a compiler execution leaks into what dependents resolve,
+						     and a later phase breaks the test run in a way that reads
+						     like a missing resource. -->
+						<phase>process-classes</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/classes-jdk21</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.outputDirectory}</directory>
+									<excludes>
+										<exclude>**/*.class</exclude>
+									</excludes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 					<execution>
 						<id>copy-resources</id>
 						<!-- here the phase you need -->
