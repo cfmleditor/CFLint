@@ -33,8 +33,17 @@ plugins {
 }
 
 java {
+    // Bytecode targets 11 to match the Maven main artifact, whatever JDK compiles it.
+    // The published jdk21 classifier is produced by Maven, which is what publishes.
+    sourceCompatibility = 11
+    targetCompatibility = 11
+
+    // -PjavaTestVersion selects the JDK that compiles and runs the tests, so CI can
+    // exercise the same Java 11 bytecode on an 11 and a 21 runtime while Gradle itself
+    // stays on the launcher JDK.
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(
+            (project.findProperty('javaTestVersion') ?: '21') as Integer)
     }
     
     withJavadocJar()
