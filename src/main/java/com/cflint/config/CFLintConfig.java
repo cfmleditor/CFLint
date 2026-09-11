@@ -2,7 +2,9 @@ package com.cflint.config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -25,6 +27,17 @@ public class CFLintConfig extends BaseConfig {
     private HashMap<String,Object> parameters = new HashMap<>();
 
     private boolean inheritParent = true;
+
+    /** Cache entry standing in for a plugin that has no rule, so misses are cached too. */
+    private static final Object NO_RULE = new Object();
+
+    /**
+     * Rule resolved for each plugin instance. getRuleForPlugin is on the per-expression
+     * parameter-lookup path and otherwise scans the whole rule list twice. Invalidated by
+     * setRules; plugin instances are bound to their rules while CFLint is being constructed,
+     * before any lookup happens.
+     */
+    private final Map<CFLintScanner, Object> ruleForPluginCache = new IdentityHashMap<>();
     
     
     /** 
@@ -38,6 +51,7 @@ public class CFLintConfig extends BaseConfig {
     @XmlElement(name = "parameters")
     public void setParameters(final HashMap<String,Object> parameters) {
         this.parameters = parameters;
+        clearParameterCache();
     }
 
     /*
@@ -55,6 +69,8 @@ public class CFLintConfig extends BaseConfig {
     @JsonProperty("rule")
     public void setRules(final List<CFLintPluginInfo.PluginInfoRule> rules) {
         this.rules = rules;
+        ruleForPluginCache.clear();
+        clearParameterCache();
     }
 
     /*
@@ -230,12 +246,22 @@ public class CFLintConfig extends BaseConfig {
      */
     @Override
     public PluginInfoRule getRuleForPlugin(final CFLintScanner plugin) {
+        final Object cached = ruleForPluginCache.get(plugin);
+        if (cached != null) {
+            return cached == NO_RULE ? null : (PluginInfoRule) cached;
+        }
+        PluginInfoRule retval = null;
         for (final PluginInfoRule rule : getRules()) {
             if (rule.getPluginInstance() == plugin) {
-                return rule;
+                retval = rule;
+                break;
             }
         }
-        return getRuleByClass(plugin.getClass());
+        if (retval == null) {
+            retval = getRuleByClass(plugin.getClass());
+        }
+        ruleForPluginCache.put(plugin, retval == null ? NO_RULE : retval);
+        return retval;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.cflint.plugins.core;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,9 @@ import ro.fortsoft.pf4j.Extension;
 @Extension
 public class PackageCaseChecker extends CFLintScannerAdapter implements CFLintSet {
 
+    private static final Pattern PACKAGE_PREFIX_PATTERN = Pattern.compile("^.+[.]");
+    private static final Pattern CFC_EXTENSION_PATTERN = Pattern.compile(".[cC][fF][cC]$");
+
     private final Map<String, HashSet<String[]>> componentRegister = new HashMap<>();
     private final Map<String, List<PackageCaseCheckerEntry>> expressionCheckRegister = new HashMap<>();
     private CFLint cflintRef;
@@ -37,7 +41,7 @@ public class PackageCaseChecker extends CFLintScannerAdapter implements CFLintSe
             final CFFunctionExpression funcExpr = (CFFunctionExpression) expression;
             if (isCreateObject(funcExpr)) {
                 final String componentPath = funcExpr.getArgs().get(1).Decompile(0).replace("'", "");
-                final String componentName = componentPath.replaceAll("^.+[.]", "");
+                final String componentName = PACKAGE_PREFIX_PATTERN.matcher(componentPath).replaceAll("");
                 checkComponentRegister(context, componentPath, componentName);
             }
         } else if (expression instanceof CFNewExpression) {
@@ -121,7 +125,7 @@ public class PackageCaseChecker extends CFLintScannerAdapter implements CFLintSe
     }
 
     private String normalize(final String filename) {
-        return filename.replaceAll(".[cC][fF][cC]$", "").replace("\\", ".").replace("/", ".");
+        return CFC_EXTENSION_PATTERN.matcher(filename).replaceAll("").replace("\\", ".").replace("/", ".");
     }
 
     private boolean isCreateObject(final CFFunctionExpression funcExpr) {

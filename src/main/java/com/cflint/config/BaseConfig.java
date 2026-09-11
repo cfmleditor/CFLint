@@ -1,13 +1,41 @@
 package com.cflint.config;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule;
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule.PluginParameter;
 import com.cflint.plugins.CFLintScanner;
 
 public abstract class BaseConfig implements CFLintConfiguration{
+
+    /** Cache entry standing in for a parameter that resolves to null, so misses are cached too. */
+    private static final Object NULL_VALUE = new Object();
+
+    /**
+     * Resolved parameter values, keyed by plugin instance and then parameter name. The rule
+     * plugins ask for their parameters once per expression/name/tag, and each unanswered lookup
+     * walks the rule list (and, for a chained config, every parent config), which dominates the
+     * cost of a scan. The configuration is fully built before scanning starts; anything that
+     * mutates it afterwards has to call clearParameterCache(). System property overrides
+     * (-DCheckerClass.parameter=value) are therefore read on the first lookup only.
+     */
+    private final Map<CFLintScanner, Map<String, Object>> parameterCache = new IdentityHashMap<>();
+
+    /** As parameterCache, for the typed getParameter(linter, name, clazz). */
+    private final Map<CFLintScanner, Map<String, Object>> typedParameterCache = new IdentityHashMap<>();
+
+    /**
+     * Discard cached parameter values. Call after changing rules or parameters on a
+     * configuration that has already been used.
+     */
+    protected void clearParameterCache() {
+        parameterCache.clear();
+        typedParameterCache.clear();
+    }
 
     /**
      * get the string property from the configuration.
@@ -19,6 +47,17 @@ public abstract class BaseConfig implements CFLintConfiguration{
      */
     @Override
     public String getParameter(final CFLintScanner linter, final String name) {
+        final Map<String, Object> cacheForLinter = parameterCache.computeIfAbsent(linter, k -> new HashMap<>());
+        final Object cached = cacheForLinter.get(name);
+        if (cached != null) {
+            return cached == NULL_VALUE ? null : (String) cached;
+        }
+        final String retval = resolveParameter(linter, name);
+        cacheForLinter.put(name, retval == null ? NULL_VALUE : retval);
+        return retval;
+    }
+
+    private String resolveParameter(final CFLintScanner linter, final String name) {
         final String propertyForName = System.getProperty(linter.getClass().getSimpleName() + "." + name);
         if (propertyForName != null && propertyForName.trim().length() > 0) {
             return propertyForName;
@@ -69,6 +108,19 @@ public abstract class BaseConfig implements CFLintConfiguration{
     @SuppressWarnings("unchecked")
     @Override
     public <E> E getParameter(final CFLintScanner linter, final String name, final Class<E> clazz) {
+        final Map<String, Object> cacheForLinter = typedParameterCache.computeIfAbsent(linter, k -> new HashMap<>());
+        final String cacheKey = name + '\u0000' + clazz.getName();
+        final Object cached = cacheForLinter.get(cacheKey);
+        if (cached != null) {
+            return cached == NULL_VALUE ? null : (E) cached;
+        }
+        final E retval = resolveParameter(linter, name, clazz);
+        cacheForLinter.put(cacheKey, retval == null ? NULL_VALUE : retval);
+        return retval;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <E> E resolveParameter(final CFLintScanner linter, final String name, final Class<E> clazz) {
         final String propertyForName = System.getProperty(linter.getClass().getSimpleName() + "." + name);
         if (propertyForName != null && propertyForName.trim().length() > 0) {
             if (clazz.equals(String.class)) {

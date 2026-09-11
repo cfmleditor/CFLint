@@ -23,6 +23,24 @@ import net.htmlparser.jericho.Element;
 
 public class VarScoper extends CFLintScannerAdapter {
 
+    /**
+     * The root of a variable reference: everything before the first dot or opening bracket, the
+     * same value as variable.split("\\.")[0].split("\\[")[0] but without the two regexes.
+     *
+     * @param variable  variable reference
+     * @return          the root variable name
+     */
+    private static String rootVariable(final String variable) {
+        for (int i = 0; i < variable.length(); i++) {
+            final char c = variable.charAt(i);
+            if (c == '.' || c == '[') {
+                return variable.substring(0, i);
+            }
+        }
+        return variable;
+    }
+
+
     public static final String VARIABLE = "variable";
     public static final String RESULT = "result";
     public static final String STRUCTNAME = "structname";
@@ -161,7 +179,7 @@ public class VarScoper extends CFLintScannerAdapter {
 
     protected void assertVariable(final Element element, final Context context, final BugList bugs,
                                   final String inameVar, int line, int offset) {
-        final String nameVar = inameVar == null ? null : inameVar.split("\\.")[0].split("\\[")[0];
+        final String nameVar = inameVar == null ? null : rootVariable(inameVar);
         if (nameVar != null && !context.getCallStack().checkVariable(nameVar) && !isGlobal(nameVar)) {
             context.addMessage("MISSING_VAR", inameVar, line, offset);
         }

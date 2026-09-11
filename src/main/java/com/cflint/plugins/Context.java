@@ -1,6 +1,7 @@
 package com.cflint.plugins;
 
 import java.io.File;
+import java.util.regex.Pattern;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -22,6 +23,9 @@ import cfml.parsing.cfscript.script.CFFuncDeclStatement;
 import net.htmlparser.jericho.Element;
 
 public class Context {
+
+    private static final Pattern TRAILING_EXTENSION_PATTERN = Pattern.compile("\\.\\w+$");
+    private static final Pattern EXTENSION_PATTERN = Pattern.compile("[.]\\w+");
 
     public enum ContextType {
         COMPONENT, FUNCTION, OTHER, QUERY_LOOP, PSEUDO_CFML
@@ -118,7 +122,7 @@ public class Context {
             return "";
         }
         // Return filename without the cfc extension
-        return new File(filename).getName().replaceAll("\\.\\w+$", "");
+        return TRAILING_EXTENSION_PATTERN.matcher(new File(filename).getName()).replaceAll("");
     }
 
     public void setFunctionName(final String functionName) {
@@ -492,7 +496,7 @@ public class Context {
 
 	private void assignComponentNameFromFile() {
 		if(filename != null && filename.trim().length()>0){
-		    componentName= new File(filename.trim()).getName().replaceAll("[.]\\w+", "");
+		    componentName= EXTENSION_PATTERN.matcher(new File(filename.trim()).getName()).replaceAll("");
 		}
 	}
 

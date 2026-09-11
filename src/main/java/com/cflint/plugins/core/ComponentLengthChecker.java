@@ -1,5 +1,7 @@
 package com.cflint.plugins.core;
 
+import java.util.regex.Pattern;
+
 import com.cflint.CF;
 import com.cflint.BugList;
 import com.cflint.plugins.Context;
@@ -11,6 +13,8 @@ import ro.fortsoft.pf4j.Extension;
 
 @Extension
 public class ComponentLengthChecker extends LengthChecker {
+
+    private static final Pattern NEWLINE_PATTERN = Pattern.compile("\\n");
     private static final int LENGTH_THRESHOLD = 500;
 
     
@@ -24,7 +28,7 @@ public class ComponentLengthChecker extends LengthChecker {
         if (expression instanceof CFCompDeclStatement) {
             final CFCompDeclStatement component = (CFCompDeclStatement) expression;
             final String decompile = component.Decompile(1);
-            final String[] lines = decompile.split("\\n");
+            final String[] lines = NEWLINE_PATTERN.split(decompile);
 
             checkSize(LENGTH_THRESHOLD, "EXCESSIVE_COMPONENT_LENGTH", context, 1, 0, lines.length, bugs);
         }
@@ -36,7 +40,7 @@ public class ComponentLengthChecker extends LengthChecker {
 
         if (elementName.equals(CF.CFCOMPONENT)) {
             // this includes whitespace-change it
-            final int total = element.getContent().toString().split("\\n").length;
+            final int total = NEWLINE_PATTERN.split(element.getContent().toString()).length;
 
             checkSize(LENGTH_THRESHOLD, "EXCESSIVE_COMPONENT_LENGTH", context, 1, 0, total, bugs);
         }

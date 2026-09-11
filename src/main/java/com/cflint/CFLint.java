@@ -173,6 +173,12 @@ public class CFLint implements IErrorReporter {
     private static final Pattern CFLINTIGNORE_PATTERN = Pattern.compile(".*\\s*@CFLintIgnore\\s+([\\w,_]+)\\s*.*", Pattern.DOTALL);
     private static final Pattern CFLINT_LINE_IGNORE_PATTERN = Pattern.compile("cflint\\s+ignore:([\\w,]+).*");
     private static final Pattern CFLINT_DISABLE_PATTERN = Pattern.compile(".*---\\s*CFLINT-DISABLE\\s+(.*)\\s*---.*");
+    private static final Pattern LINE_BREAK_PATTERN = Pattern.compile("\\R");
+    private static final Pattern COMMA_SEPARATOR_PATTERN = Pattern.compile(",\\s*");
+    private static final Pattern PADDED_COMMA_SEPARATOR_PATTERN = Pattern.compile("\\s*,\\s*");
+    private static final Pattern LINE_COMMENT_PREFIX_PATTERN = Pattern.compile("^//\\s*");
+    private static final Pattern CFC_EXTENSION_PATTERN = Pattern.compile(".[cC][fF][cC]");
+    private static final Pattern PATH_PREFIX_PATTERN = Pattern.compile("^.*[/\\\\]");
 
     private CFMLTagInfo tagInfo;
     private CFMLParser cfmlParser = new CFMLParser();
@@ -323,6 +329,16 @@ public class CFLint implements IErrorReporter {
         }
     }
 
+    /**
+     * The component name for a file: its base name with the .cfc extension removed.
+     *
+     * @param filename  name of the file being scanned
+     * @return          the component name
+     */
+    private static String componentNameFor(final String filename) {
+        return PATH_PREFIX_PATTERN.matcher(CFC_EXTENSION_PATTERN.matcher(filename).replaceAll("")).replaceAll("");
+    }
+
     private String getEnvSuffix() {
 		return environmentName.equals("")?"":"-" + environmentName;
 	}
@@ -381,7 +397,7 @@ public class CFLint implements IErrorReporter {
             includeFileStack.clear();
             try {
                 // Report number of lines in the source
-                stats.addFile(src == null || src.length() == 0 ? 0 : src.split("\\R").length + 1);
+                stats.addFile(src == null || src.length() == 0 ? 0 : LINE_BREAK_PATTERN.split(src).length + 1);
                 process(src, folderOrFile.getAbsolutePath());
             } catch (final Exception e) {
                 printException(e);
@@ -530,7 +546,7 @@ public class CFLint implements IErrorReporter {
             if (elem.getName().equalsIgnoreCase(CF.CFCOMPONENT)) {
                 final Context componentContext = context.subContext(elem);
                 componentContext.setInComponent(true);
-                componentContext.setComponentName(context.getFilename().replaceAll(".[cC][fF][cC]", "").replaceAll("^.*[/\\\\]", ""));//elem.getAttributeValue(CF.DISPLAYNAME)
+                componentContext.setComponentName(componentNameFor(context.getFilename()));
                 componentContext.setContextType(ContextType.COMPONENT);
                 handler.push(CF.COMPONENT);
                 doStructureStart(elem, componentContext, CFCompDeclStatement.class);
@@ -652,7 +668,7 @@ public class CFLint implements IErrorReporter {
             } else if (elem.getName().equalsIgnoreCase(CF.CFCOMPONENT)) {
                 final Context componentContext = context.subContext(elem);
                 componentContext.setInComponent(true);
-                componentContext.setComponentName(context.getFilename().replaceAll(".[cC][fF][cC]", "").replaceAll("^.*[/\\\\]", ""));//elem.getAttributeValue(CF.DISPLAYNAME)
+                componentContext.setComponentName(componentNameFor(context.getFilename()));
                 componentContext.setContextType(ContextType.COMPONENT);
                 scanElement(elem, componentContext);
                 processStack(elem.getChildElements(), space + " ", componentContext);
@@ -687,7 +703,7 @@ public class CFLint implements IErrorReporter {
                     final Matcher m = QUERY_COLUMNS_PATTERN.matcher(qryText);
                     final List<String> cols = new ArrayList<>();
                     if (m.matches()) {
-                        cols.addAll(Arrays.asList(m.group(1).trim().split("\\s*,\\s*")));
+                        cols.addAll(Arrays.asList(PADDED_COMMA_SEPARATOR_PATTERN.split(m.group(1).trim())));
                         handler.addQueryColumnSet(qryName, cols);
                     }
                 }
@@ -871,7 +887,7 @@ public class CFLint implements IErrorReporter {
                 String skip = sr.readLine();
             }
             final String sLine = sr.readLine();
-            return sLine == null ? null : sLine.replaceAll("\t", " ");
+            return sLine == null ? null : sLine.replace('\t', ' ');
         } catch (final Exception e) { }
         return retval.substring(0, 300);
     }
@@ -1186,7 +1202,7 @@ public class CFLint implements IErrorReporter {
             final Matcher matcher = CFLINTIGNORE_PATTERN.matcher(mlText);
             if (matcher.matches()) {
                 final String ignoreCodes = matcher.group(1);
-                context.ignore(Arrays.asList(ignoreCodes.split(",\\s*")));
+                context.ignore(Arrays.asList(COMMA_SEPARATOR_PATTERN.split(ignoreCodes)));
             }
         }
     }
@@ -1209,12 +1225,12 @@ public class CFLint implements IErrorReporter {
             if (currentTok.getLine() == expression.getExpression().getLine()) {
                 if (currentTok.getChannel() == Token.HIDDEN_CHANNEL
                         && currentTok.getType() == CFSCRIPTLexer.LINE_COMMENT) {
-                    final String commentText = currentTok.getText().replaceFirst("^//\\s*", "").trim();
+                    final String commentText = LINE_COMMENT_PREFIX_PATTERN.matcher(currentTok.getText()).replaceFirst("").trim();
                     if (commentText.startsWith("cflint ")) {
                         final Matcher matcher = CFLINT_LINE_IGNORE_PATTERN.matcher(commentText);
                         if (matcher.matches()) {
                             final String ignoreCodes = matcher.group(1);
-                            context.ignore(Arrays.asList(ignoreCodes.split(",\\s*")));
+                            context.ignore(Arrays.asList(COMMA_SEPARATOR_PATTERN.split(ignoreCodes)));
                         }
                     }
                 }
@@ -1236,7 +1252,7 @@ public class CFLint implements IErrorReporter {
             final Matcher matcher = CFLINTIGNORE_PATTERN.matcher(mlText);
             if (matcher.matches()) {
                 final String ignoreCodes = matcher.group(1);
-                context.ignore(Arrays.asList(ignoreCodes.split(",\\s*")));
+                context.ignore(Arrays.asList(COMMA_SEPARATOR_PATTERN.split(ignoreCodes)));
             }
         }
     }
@@ -1525,7 +1541,7 @@ public class CFLint implements IErrorReporter {
         } else if (expression instanceof CFScriptStatement) {
             bldr.setExpression(((CFScriptStatement) expression).Decompile(0));
         } else if (elem != null) {
-            bldr.setExpression(elem.toString().replaceAll("\r\n", "\n"));
+            bldr.setExpression(elem.toString().replace("\r\n", "\n"));
         }
         //Rebuild the parameter list so that custom configurations are picked up
         final List<PluginParameter> parameters = new ArrayList<>();
@@ -1607,7 +1623,7 @@ public class CFLint implements IErrorReporter {
                 break;
             }
             if (currentTok.getChannel() == Token.HIDDEN_CHANNEL && currentTok.getType() == CFSCRIPTLexer.LINE_COMMENT) {
-                final String commentText = currentTok.getText().replaceFirst("^//\\s*", "").trim();
+                final String commentText = LINE_COMMENT_PREFIX_PATTERN.matcher(currentTok.getText()).replaceFirst("").trim();
                 if (commentText.startsWith("cflint ")) {
                     final Matcher matcher = CFLINT_LINE_IGNORE_PATTERN.matcher(commentText);
                     if (matcher.matches() && matcher.groupCount() > 0) {
@@ -1615,7 +1631,7 @@ public class CFLint implements IErrorReporter {
                         if ("line".equalsIgnoreCase(ignoreCodes)) {
                             return true;
                         }
-                        for (final String ignoreCode : ignoreCodes.split(",\\s*")) {
+                        for (final String ignoreCode : COMMA_SEPARATOR_PATTERN.split(ignoreCodes)) {
                             if (ignoreCode.equals(bugInfo.getMessageCode())) {
                                 return true;
                             }
@@ -1672,7 +1688,8 @@ public class CFLint implements IErrorReporter {
     }
 
     protected void fireStartedProcessing(final String srcidentifier) {
-        cfmlParser = new CFMLParser();
+        // Reuse the parser across files: it carries cfparser's expression-tree cache (and its
+        // loaded syntax dictionary), both of which a per-file parser throws away.
         cfmlParser.setErrorReporter(this);
         currentFile = srcidentifier;
         currentElement = null;

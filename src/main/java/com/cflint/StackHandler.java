@@ -13,6 +13,19 @@ import java.util.Set;
 
 public class StackHandler {
 
+    /**
+     * The part of a variable name before its first dot: the same value as
+     * name.split("\\.")[0], without compiling a regex for every variable checked.
+     *
+     * @param name  variable name
+     * @return      the leading segment of the name
+     */
+    private static String firstSegment(final String name) {
+        final int dot = name.indexOf('.');
+        return dot < 0 ? name : name.substring(0, dot);
+    }
+
+
     private final Deque<Stack> varStack = new ArrayDeque<>();
     private final Set<String> excludes = new HashSet<>();
 
@@ -168,7 +181,7 @@ public class StackHandler {
     }
 
     public boolean checkVariable(final String name) {
-    	if (excludes.contains(name.toUpperCase().split("\\.")[0])) {
+    	if (excludes.contains(firstSegment(name.toUpperCase()))) {
             return true;
         }
         final Iterator<Stack> iter = varStack.iterator();

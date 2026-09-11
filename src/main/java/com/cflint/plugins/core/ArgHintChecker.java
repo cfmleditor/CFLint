@@ -24,6 +24,8 @@ import net.htmlparser.jericho.Element;
  */
 public class ArgHintChecker extends CFLintScannerAdapter {
 
+    private static final Pattern COMMENT_START_PATTERN = Pattern.compile("^/\\*");
+    private static final Pattern COMMENT_END_PATTERN = Pattern.compile("\\*/$");
     private static final Pattern ANNOTATION_PATTERN = Pattern.compile("^.*\\s*@(\\w+)\\s+(.*+)$");
 
     /**
@@ -49,7 +51,7 @@ public class ArgHintChecker extends CFLintScannerAdapter {
             final CFFuncDeclStatement funcDeclStatement = (CFFuncDeclStatement) expression;
             final String multiLineText = PrecedingCommentReader.getMultiLine(context, expression.getToken());
             final String mlText = multiLineText == null ? null
-                    : multiLineText.replaceFirst("^/\\*", "").replaceAll("\\*/$", "").trim();
+                    : COMMENT_END_PATTERN.matcher(COMMENT_START_PATTERN.matcher(multiLineText).replaceFirst("")).replaceAll("").trim();
             
             final Map<String, String> annotations = new HashMap<>();
             if (mlText != null && !mlText.isEmpty()) {

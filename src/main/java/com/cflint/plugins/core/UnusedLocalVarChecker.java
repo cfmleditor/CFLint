@@ -1,5 +1,6 @@
 package com.cflint.plugins.core;
 
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,9 @@ import net.htmlparser.jericho.Element;
 
 public class UnusedLocalVarChecker extends CFLintScannerAdapter {
     protected CFScopes scopes = new CFScopes();
+    // usedTagAttributes is "tag/attribute" pairs from the configuration, checked against every
+    // tag in the scan - split them once per distinct configured list instead of per tag.
+    private final Map<List<String>, String[][]> usedTagAttributesCache = new IdentityHashMap<>();
     // LinkedHashMap is ordered.
     protected Map<String, VarInfo> localVariables = new LinkedHashMap<>();
 
@@ -137,8 +141,15 @@ public class UnusedLocalVarChecker extends CFLintScannerAdapter {
 
     @SuppressWarnings("unchecked")
     private void checkAttributes(final Element element, final CFLintConfiguration configuration) {
-        for (String tagInfo : (List<String>)configuration.getParameter(this,"usedTagAttributes", List.class)) {
-            final String[] parts = (tagInfo + "//").split("/");
+        final List<String> usedTagAttributes = (List<String>)configuration.getParameter(this,"usedTagAttributes", List.class);
+        final String[][] tagAttributes = usedTagAttributesCache.computeIfAbsent(usedTagAttributes, list -> {
+            final String[][] retval = new String[list.size()][];
+            for (int i = 0; i < list.size(); i++) {
+                retval[i] = (list.get(i) + "//").split("/");
+            }
+            return retval;
+        });
+        for (final String[] parts : tagAttributes) {
             if (element.getName() != null && parts[0].equalsIgnoreCase(element.getName())) {
                 final String name = element.getAttributeValue(parts[1]);
                 if (name != null && localVariables.containsKey(name.toLowerCase())) {
