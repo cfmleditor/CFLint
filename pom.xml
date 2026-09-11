@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.cfmleditor</groupId>
 	<artifactId>cflint</artifactId>
-	<version>1.5.15</version>
+	<version>1.5.16</version>
 	<packaging>jar</packaging>
 
 	<name>cflint</name>
@@ -85,7 +85,7 @@
 		<jdk21.release>21</jdk21.release>
 		<maven.compiler.proc>none</maven.compiler.proc>
 
-		<cfparser.version>2.16.1-SNAPSHOT</cfparser.version>
+		<cfparser.version>2.16.2-SNAPSHOT</cfparser.version>
 		<jackson.version>2.18.9</jackson.version>
 		<slf4j.version>1.7.21</slf4j.version>
 	</properties>
