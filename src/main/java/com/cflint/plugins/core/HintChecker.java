@@ -14,6 +14,8 @@ import cfml.parsing.cfscript.script.CFScriptStatement;
  */
 public class HintChecker extends CFLintScannerAdapter {
 
+    private static final Pattern COMMENT_START_PATTERN = Pattern.compile("^/\\*");
+    private static final Pattern COMMENT_END_PATTERN = Pattern.compile("\\*/$");
     private static final Pattern HINT_PATTERN = Pattern.compile(".*\\s*@hint\\s+([\\w,_]+)\\s*.*", Pattern.DOTALL);
 
     /**
@@ -27,7 +29,7 @@ public class HintChecker extends CFLintScannerAdapter {
     protected void checkHint(final String message, final String name, final CFScriptStatement expression, final Context context) {
         final String multiLineText = PrecedingCommentReader.getMultiLine(context, expression.getToken());
         final String mlText = multiLineText == null ? null
-                : multiLineText.replaceFirst("^/\\*", "").replaceAll("\\*/$", "").trim();
+                : COMMENT_END_PATTERN.matcher(COMMENT_START_PATTERN.matcher(multiLineText).replaceFirst("")).replaceAll("").trim();
         if (mlText != null && !mlText.isEmpty()) {
             final Matcher matcher = HINT_PATTERN.matcher(mlText);
             if (matcher.matches()) {

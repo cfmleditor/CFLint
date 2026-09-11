@@ -1,6 +1,7 @@
 package com.cflint.plugins.core;
 
 import java.util.HashMap;
+import java.util.regex.Pattern;
 import java.util.Map;
 
 import com.cflint.BugList;
@@ -15,6 +16,8 @@ import ro.fortsoft.pf4j.Extension;
 
 @Extension
 public class LiteralChecker extends CFLintScannerAdapter {
+
+    private static final Pattern WORD_CHARACTER_PATTERN = Pattern.compile(".*\\w.*");
     protected static final int REPEAT_THRESHOLD = 3;
     protected static final int WARNING_THRESHOLD = 5;
 
@@ -110,7 +113,7 @@ public class LiteralChecker extends CFLintScannerAdapter {
             return true;
         }
         //Punctuation literals excepted (Look for absence of a word character)
-        if (!name.matches(".*\\w.*")) {
+        if (!WORD_CHARACTER_PATTERN.matcher(name).matches()) {
             return true;
         }
         //Exclude datatype for cfquery/cfproc

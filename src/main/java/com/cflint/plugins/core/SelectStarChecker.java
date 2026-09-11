@@ -1,5 +1,7 @@
 package com.cflint.plugins.core;
 
+import java.util.regex.Pattern;
+
 import com.cflint.BugList;
 import com.cflint.CF;
 import com.cflint.plugins.CFLintScannerAdapter;
@@ -10,6 +12,8 @@ import ro.fortsoft.pf4j.Extension;
 
 @Extension
 public class SelectStarChecker extends CFLintScannerAdapter {
+
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
     private static final CharSequence selectStar = "select*";
 
     
@@ -23,7 +27,7 @@ public class SelectStarChecker extends CFLintScannerAdapter {
         final String tagName = element.getName();
         if (tagName.equals(CF.CFQUERY)) {
 
-            String queryGuts = element.getContent().toString().replaceAll("\\s+", "");
+            String queryGuts = WHITESPACE_PATTERN.matcher(element.getContent().toString()).replaceAll("");
             queryGuts = queryGuts.toLowerCase();
 
             if (queryGuts.contains(selectStar)) {

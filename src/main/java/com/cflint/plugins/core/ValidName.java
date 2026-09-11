@@ -28,6 +28,12 @@ public class ValidName {
     public static final int MIN_ARGUMENT_LENGTH = 3;
 
     private static final Pattern VALID_CHARS_PATTERN = Pattern.compile("^[A-Za-z0-9_]+$");
+    // Word boundary inside a camelCased name, and the [A-Z_]+ word split: both are checked for
+    // every name in the scan, so neither can afford to recompile per call.
+    private static final Pattern CAMEL_BOUNDARY_PATTERN = Pattern.compile("(\\p{Ll})(\\p{Lu})");
+    private static final Pattern WORD_SPLIT_PATTERN = Pattern.compile("[A-Z_]+");
+    private static final String[] WORDS_TO_AVOID = { "temp", "tmp", "var", "func", "obj", "object", "bool", "struct",
+            "string", "array", "comp" };
     // [A-Z0-9]{2,5} catch names like productID, phone4G, requestURL etc etc
     private static final Pattern CAMEL_CASE_PATTERN = Pattern.compile("^[a-z0-9]+([A-Z]{1,5}[a-z0-9]+)*([A-Z0-9]{2,5}){0,1}[A-Z]?$");
     private static final Pattern PASCAL_CASE_PATTERN = Pattern.compile("^([A-Z]{1,5}[a-z0-9]+)+([A-Z0-9]{2,5}){0,1}[A-Z]?$");
@@ -280,7 +286,7 @@ public class ValidName {
     	if(name == null) {
     		return false;
     	}
-       final String[] words = name.split("[A-Z_]+");
+       final String[] words = WORD_SPLIT_PATTERN.split(name);
         int count = 0;
 
         for (int i = 0; i < words.length; i++) {
@@ -293,6 +299,17 @@ public class ValidName {
     }
 
     /**
+     * Split a name into words, breaking on underscores and camelCase boundaries.
+     *
+     * @param name  name of variable.
+     * @return      the words making up the name.
+     */
+    private static String[] splitIntoWords(final String name) {
+        final String sentence = CAMEL_BOUNDARY_PATTERN.matcher(name.replace('_', ' ')).replaceAll("$1 $2");
+        return sentence.split(" ");
+    }
+
+    /**
      * Is the name temporary?.
      *
      * @param name name of variable.
@@ -302,13 +319,9 @@ public class ValidName {
     	if(name == null) {
     		return false;
     	}
-        final String[] wordsToAvoid = { "temp", "tmp", "var", "func", "obj", "object", "bool", "struct", "string",
-                "array", "comp" };
-        String sentence = name.replaceAll("_", " ");
-        sentence = sentence.replaceAll("(\\p{Ll})(\\p{Lu})", "$1 $2");
-        final String[] words = sentence.split(" ");
+        final String[] words = splitIntoWords(name);
 
-        for (final String badWord : wordsToAvoid) {
+        for (final String badWord : WORDS_TO_AVOID) {
             for (final String word : words) {
                 if (word.equalsIgnoreCase(badWord)) {
                     return true;
@@ -329,14 +342,12 @@ public class ValidName {
     	if(name == null) {
     		return false;
     	}
-        String sentence = name.replaceAll("_", " ");
-        sentence = sentence.replaceAll("(\\p{Ll})(\\p{Lu})", "$1 $2");
+        final String[] words = splitIntoWords(name);
 
-        if (sentence.trim().length() == 0) {
+        if (words.length == 0 || (words.length == 1 && words[0].trim().length() == 0)) {
         	return false;
         }
-        
-        final String[] words = sentence.split(" ");
+
         final String firstWord = words[0];
         final String lastWord = words[words.length - 1];
 

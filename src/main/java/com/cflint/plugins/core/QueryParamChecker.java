@@ -20,6 +20,9 @@ import net.htmlparser.jericho.Element;
 
 public class QueryParamChecker extends CFLintScannerAdapter {
 
+    private static final Pattern CFQUERYPARAM_TAG_PATTERN = Pattern.compile("<[cC][fF][qQ][uU][eE][rR][yY][pP][aA][rR][aA][mM][^>]*>");
+    private static final Pattern LINE_BREAK_PATTERN = Pattern.compile("\\R");
+    private static final Pattern VARIABLE_PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{variable\\}");
     private static final Pattern SETSQL_HASH_PATTERN = Pattern.compile(".*#(?:##)?([^#]+)(?:##)?#($|[^#]).*", Pattern.DOTALL);
     private static final Pattern QUERYPARAM_HASH_PATTERN = Pattern.compile("#(?:##)?([^#]+)(?:##)?#($|[^#])", Pattern.DOTALL);
 
@@ -62,20 +65,20 @@ public class QueryParamChecker extends CFLintScannerAdapter {
             final String allowLineExpression = context.getConfiguration().getParameter(this,"allowLineExpression");
             //Todo : cfparser/Jericho does not support parsing out the cfqueryparam very well.
             //   the following code will not work when there is a > sign in the expression
-            content = content.replaceAll("<[cC][fF][qQ][uU][eE][rR][yY][pP][aA][rR][aA][mM][^>]*>", "");
+            content = CFQUERYPARAM_TAG_PATTERN.matcher(content).replaceAll("");
             if (content.indexOf('#') >= 0) {
                 final List<Integer> ignoreLines = determineIgnoreLines(content, context.startLine());
                 final Matcher matcher = QUERYPARAM_HASH_PATTERN.matcher(content);
                 while (matcher.find()) {
                     if (matcher.groupCount() >= 1) {
                         int currentline = context.startLine() + countNewLinesUpTo(content, matcher.start());
-                        String linecontent = content.split("\\R")[currentline-context.startLine()];
+                        String linecontent = LINE_BREAK_PATTERN.split(content)[currentline-context.startLine()];
                         int currentOffset = element.getStartTag().getEnd() + 1 + matcher.start();
                         String variableName = matcher.group(1);
                         Pattern allowLineExpressionPattern = null;
                         if ( !"".equals(allowLineExpression) ) {
                             //System.out.println(allowLineExpression.replaceAll("\\$\\{variable\\}","\\\\Q" + Matcher.quoteReplacement(variableName) + "\\\\E"));
-                            allowLineExpressionPattern = Pattern.compile(allowLineExpression.replaceAll("\\$\\{variable\\}","\\\\Q" + Matcher.quoteReplacement(variableName) + "\\\\E"),Pattern.DOTALL);
+                            allowLineExpressionPattern = Pattern.compile(VARIABLE_PLACEHOLDER_PATTERN.matcher(allowLineExpression).replaceAll("\\\\Q" + Matcher.quoteReplacement(variableName) + "\\\\E"),Pattern.DOTALL);
                         }
                         if ( !ignoreLines.contains(currentline) 
                             && (allowVariableExpressionPattern == null || !allowVariableExpressionPattern.matcher(variableName).find())
@@ -160,7 +163,7 @@ public class QueryParamChecker extends CFLintScannerAdapter {
      */
     public int countNewLinesUpTo(final String val, final int pos) {
         final String x = pos > val.length() ? val : val.substring(0, pos);
-        return Math.max(0, x.split("\\R").length - 1);
+        return Math.max(0, LINE_BREAK_PATTERN.split(x).length - 1);
     }
 
 }

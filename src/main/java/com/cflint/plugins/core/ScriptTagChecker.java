@@ -1,5 +1,7 @@
 package com.cflint.plugins.core;
 
+import java.util.regex.Pattern;
+
 import com.cflint.BugList;
 import com.cflint.plugins.CFLintScannerAdapter;
 import com.cflint.plugins.Context;
@@ -10,6 +12,8 @@ import ro.fortsoft.pf4j.Extension;
 // Deprecate?
 @Extension
 public class ScriptTagChecker extends CFLintScannerAdapter {
+
+    private static final Pattern SRC_ATTRIBUTE_PATTERN = Pattern.compile(".*src=.*");
 
     
     /** 
@@ -22,7 +26,7 @@ public class ScriptTagChecker extends CFLintScannerAdapter {
     public void element(final Element element, final Context context, final BugList bugs) {
         if ("script".equals(element.getName())) {
             final String src = element.getStartTag().toString();
-            if (!src.matches(".*src=.*")) {
+            if (!SRC_ATTRIBUTE_PATTERN.matcher(src).matches()) {
                 context.addMessage("AVOID_USING_INLINE_JS", null);
             }
         }

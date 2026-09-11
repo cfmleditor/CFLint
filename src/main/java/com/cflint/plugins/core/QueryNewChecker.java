@@ -1,6 +1,7 @@
 package com.cflint.plugins.core;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +21,8 @@ import ro.fortsoft.pf4j.Extension;
 @Extension
 public class QueryNewChecker extends CFLintScannerAdapter {
 
+    private static final Pattern COLUMN_SEPARATOR_PATTERN = Pattern.compile("\\s*,\\s*");
+
 	/**
 	 * Check query new for unique columns listed in parm 1.
 	 * @param expression expresison to check.
@@ -35,7 +38,7 @@ public class QueryNewChecker extends CFLintScannerAdapter {
 				final String query = arg.Decompile(0);
 				//Build the list, then get unique with a set, pull them out of the list, anything 
 				// left is a duplicate.
-				final List<String> cols = new ArrayList<String>(Arrays.asList(query.toLowerCase().split("\\s*,\\s*")));
+				final List<String> cols = new ArrayList<String>(Arrays.asList(COLUMN_SEPARATOR_PATTERN.split(query.toLowerCase())));
 				final Set<String> cols_unique = new HashSet<String>(cols);
 				for(final String x:cols_unique) {
 					cols.remove(x);

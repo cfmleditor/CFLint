@@ -1,6 +1,7 @@
 package com.cflint;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule.PluginMessage;
 import com.cflint.config.CFLintPluginInfo.PluginInfoRule.PluginParameter;
@@ -10,6 +11,8 @@ import cfml.parsing.cfscript.script.CFScriptStatement;
 import net.htmlparser.jericho.Element;
 
 public class BugInfo implements Comparable<BugInfo> {
+
+    private static final Pattern LINE_BREAK_PATTERN = Pattern.compile("(\\r|\\n)");
 
     private String filename;
     private int line = 1; // Default to non-zero task #230
@@ -123,7 +126,11 @@ public class BugInfo implements Comparable<BugInfo> {
         }
 
         public BugInfoBuilder setFilename(final String filename) {
-            bugInfo.filename = filename.replaceAll("(\\r|\\n)", "");
+            // Called for every bug; a filename almost never contains a line break, so only pay
+            // for the regex when one does.
+            bugInfo.filename = filename.indexOf('\r') < 0 && filename.indexOf('\n') < 0
+                    ? filename
+                    : LINE_BREAK_PATTERN.matcher(filename).replaceAll("");
             return this;
         }
 
@@ -251,12 +258,14 @@ public class BugInfo implements Comparable<BugInfo> {
             }
 
             if (message.contains("{tag}") && elem != null) {
-                message = message.replaceAll("\\$\\{tag\\}", notNull(elem.getName()));
+                message = message.replace("${tag}", notNull(elem.getName()));
             }
 
             if (parameters != null) {
+                // A literal replace: the placeholder and the substituted value are both plain
+                // text, so neither has to be escaped for a regex or a replacement string.
                 for (final PluginParameter param : parameters) {
-                    message = message.replaceAll("\\$\\{" + param.getName() + "\\}", notNull(param.getValue()));
+                    message = message.replace("${" + param.getName() + "}", notNull(param.getValue()));
                 }
             }
             setMessage(message);

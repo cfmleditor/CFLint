@@ -1,5 +1,7 @@
 package com.cflint.plugins.core;
 
+import java.util.regex.Pattern;
+
 import com.cflint.CF;
 import com.cflint.BugList;
 import com.cflint.plugins.Context;
@@ -11,6 +13,8 @@ import ro.fortsoft.pf4j.Extension;
 
 @Extension
 public class FunctionLengthChecker extends LengthChecker {
+
+    private static final Pattern NEWLINE_PATTERN = Pattern.compile("\\n");
     private static final int LENGTH_THRESHOLD = 100;
 
     
@@ -26,7 +30,7 @@ public class FunctionLengthChecker extends LengthChecker {
             final String decompile = function.Decompile(1);
             final int begLine = function.getLine();
             final int offset = function.getOffset() + context.offset();
-            final String[] lines = decompile.split("\\n");
+            final String[] lines = NEWLINE_PATTERN.split(decompile);
 
             checkSize(LENGTH_THRESHOLD, "EXCESSIVE_FUNCTION_LENGTH", context, begLine, offset, lines.length, bugs);
         }
