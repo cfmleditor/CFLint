@@ -7,24 +7,31 @@ on:
 jobs:
   build-native:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             arch: amd64
             artifact: cflint-linux-amd64
+            archive: cflint-linux-amd64.tar.gz
           - os: ubuntu-24.04-arm
             arch: aarch64
             artifact: cflint-linux-aarch64
-          - os: macos-13
+            archive: cflint-linux-aarch64.tar.gz
+          - os: macos-15-intel
             arch: amd64
             artifact: cflint-macos-amd64
+            archive: cflint-macos-amd64.tar.gz
           - os: macos-latest
             arch: aarch64
             artifact: cflint-macos-aarch64
+            archive: cflint-macos-aarch64.tar.gz
           - os: windows-latest
             arch: amd64
             artifact: cflint-windows-amd64.exe
+            archive: cflint-windows-amd64.zip
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     permissions:
       contents: write
     steps:
@@ -53,7 +60,33 @@ jobs:
         if: runner.os == 'Windows'
         run: mv build/native/nativeCompile/cflint.exe build/native/nativeCompile/${{ matrix.artifact }}
 
+      # A compressed copy alongside the raw binary, not instead of it: anything
+      # already fetching `cflint-linux-amd64` keeps working, and a tool that
+      # downloads one on demand pulls ~28 MB rather than ~90 MB. The binary
+      # inside is plain `cflint`, so whatever unpacks it does not have to know
+      # which platform's archive it opened.
+      - name: Compress binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        working-directory: build/native/nativeCompile
+        # COPYFILE_DISABLE keeps BSD tar from adding an AppleDouble `._cflint`
+        # entry for the binary's extended attributes on macOS.
+        run: |
+          cp ${{ matrix.artifact }} cflint
+          chmod +x cflint
+          COPYFILE_DISABLE=1 tar -czf ${{ matrix.archive }} cflint
+          rm cflint
+
+      - name: Compress binary (Windows)
+        if: runner.os == 'Windows'
+        working-directory: build/native/nativeCompile
+        run: |
+          Copy-Item ${{ matrix.artifact }} cflint.exe
+          Compress-Archive -Path cflint.exe -DestinationPath ${{ matrix.archive }}
+          Remove-Item cflint.exe
+
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
         with:
-          files: build/native/nativeCompile/${{ matrix.artifact }}
+          files: |
+            build/native/nativeCompile/${{ matrix.artifact }}
+            build/native/nativeCompile/${{ matrix.archive }}
