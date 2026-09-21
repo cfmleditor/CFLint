@@ -25,7 +25,9 @@ The master branch is considered our stable codebase. Most of the development hap
 ## Building CFLint
 
 1. Fork the repository into your account and clone or download the codebase as a zip-file.
-2. Install the tooling of your choice and build via Gradle or Maven (deprecated). CFLint requires Java 21 or later.
+2. Install the tooling of your choice and build via Gradle or Maven (deprecated). Building uses a JDK 21
+   toolchain by default. The main artifact targets Java 11, so CFLint runs on Java 11 or later; a `jdk21`
+   classifier jar compiled from the same source at Java 21 is published alongside it.
 
 a. Gradle: execute
 
