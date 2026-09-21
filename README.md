@@ -25,7 +25,7 @@ The master branch is considered our stable codebase. Most of the development hap
 ## Building CFLint
 
 1. Fork the repository into your account and clone or download the codebase as a zip-file.
-2. Install the tooling of your choice and build via Gradle or Maven (deprecated). CFLint requires Java 8.
+2. Install the tooling of your choice and build via Gradle or Maven (deprecated). CFLint requires Java 21 or later.
 
 a. Gradle: execute
 
@@ -45,23 +45,58 @@ in the cflint directory
 
 Alternatively, import the CFLint codebase into the IDE of your choice and use its respectively Gradle/Maven integration. This should work out of the box for Eclipse and IntelliJ users.
 
+### Prebuilt native binaries
+
+Every [release](https://github.com/cfmleditor/CFLint/releases) carries a standalone
+native binary per platform. These need no JVM installed — they start in
+milliseconds rather than seconds, which matters most for editor integrations and
+pre-commit hooks that invoke CFLint once per file.
+
+| Platform | Architecture | Asset |
+| --- | --- | --- |
+| Linux | x86_64 | `cflint-linux-amd64` |
+| Linux | ARM64 | `cflint-linux-aarch64` |
+| macOS | Intel | `cflint-macos-amd64` |
+| macOS | Apple Silicon | `cflint-macos-aarch64` |
+| Windows | x86_64 | `cflint-windows-amd64.exe` |
+
+Each one also ships compressed — `.tar.gz` for Linux and macOS, `.zip` for
+Windows — at roughly a third of the download size. The file inside the archive is
+always named `cflint` (`cflint.exe` on Windows), so an unpacker does not need to
+know which platform's archive it opened.
+
+On macOS the binary is unsigned, so Gatekeeper will quarantine it on first run:
+
+```cmd
+xattr -d com.apple.quarantine ./cflint-macos-amd64
+chmod +x ./cflint-macos-amd64
+```
+
+The `-all` jar remains available on the release page for platforms without a
+native build, and is still the right choice for embedding CFLint in a JVM
+application.
+
 ### Building a native binary
 
 CFLint can be compiled to a native binary using GraalVM Native Image. This produces a standalone executable with faster startup and lower memory usage.
 
-1. Install GraalVM CE 21+ (e.g. via [SDKMAN!](https://sdkman.io/)):
+1. Install GraalVM CE 25+ (e.g. via [SDKMAN!](https://sdkman.io/)):
 
 ```cmd
-sdk install java 21.0.2-graalce
+sdk install java 25.0.2-graalce
 ```
 
 2. Build the native binary:
 
 ```cmd
-JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce ./gradlew nativeCompile
+JAVA_HOME=~/.sdkman/candidates/java/25.0.2-graalce ./gradlew nativeCompile
 ```
 
 The binary will be at `build/native/nativeCompile/cflint`.
+
+The `org.graalvm.buildtools.native` plugin is pinned to a version whose
+reachability-metadata schema requires GraalVM 25 or later; building with a
+GraalVM 21 install fails at configuration time rather than producing a binary.
 
 ## Using CFLint - Quickstart Guide
 
