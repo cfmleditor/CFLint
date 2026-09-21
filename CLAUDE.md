@@ -8,9 +8,17 @@ CFLint is a static code analysis tool for CFML (ColdFusion Markup Language). It 
 
 ## Build & test commands
 
-Gradle is the primary build (Maven is deprecated but still present via `pom.xml`). Requires Java 21+ (toolchain pinned to 21; GraalVM native build needs GraalVM 25, see below).
+Gradle is the primary build (Maven is deprecated but still present via `pom.xml`). Building needs a JDK 21 (the Gradle toolchain default); the artifact it produces targets Java 11 and runs on 11 or later. The GraalVM native build needs GraalVM 25, see below.
 
-The baseline moved from 11 to 21 in 2026-08, forced by upstream: cfparser now compiles at Java 21, and class file version 65 cannot be loaded by an 11 JVM. Four places had to move together — `maven.compiler.source`/`target` in `pom.xml`, the toolchain `languageVersion` in `build.gradle`, and the runner `java-version` in both `gradle.yml` and `publish.yml`. `native-release.yml` was already on 25 and needed nothing.
+**The baseline is 11, and the project dual-targets on purpose — do not "fix" it to 21.** An earlier version of this file claimed the baseline moved from 11 to 21 in 2026-08, forced by cfparser compiling at class file version 65. That is false, and it is an easy claim to repeat because 21 appears all over the build for unrelated reasons. What is actually true:
+
+- `sourceCompatibility`/`targetCompatibility` in `build.gradle` are **11**, and `maven.compiler.release` in `pom.xml` is **11**. The main artifact is Java 11 bytecode.
+- A second Maven execution, `compile-jdk21`, compiles the *same source* at 21 into `target/classes-jdk21` and publishes it as the `jdk21` **classifier** jar. Two artifacts, one source tree, mirroring what cfparser does. The 21 here is an additional artifact, not a raised floor.
+- The Gradle **toolchain** defaults to 21 (`-PjavaTestVersion` overrides it). That is the JDK doing the compiling; it is unrelated to the bytecode level, which the `targetCompatibility` above pins to 11.
+- `gradle.yml` runs a matrix of `java-version: [11, 21]` across Linux, macOS and Windows precisely so the 11 bytecode is exercised on a real 11 runtime. **The 11 legs pass.** They could not if the floor were 21 — this is the cheapest way to check the claim.
+- cfparser is not forcing anything. Every one of the 351 classes in `cfml.parsing-2.16.2-SNAPSHOT.jar` is major version **55** (Java 11), verified by reading the class headers, not by inference.
+
+`publish.yml` pinning `java-version: '21'` is consistent with all of the above: it is the JDK that runs the build, and the build needs 21 to produce the `jdk21` classifier.
 
 ```bash
 ./gradlew build              # compile + test + jar
@@ -22,7 +30,7 @@ The baseline moved from 11 to 21 in 2026-08, forced by upstream: cfparser now co
 
 Maven equivalent: `mvn clean install`.
 
-**Local environment note:** Gradle 9.6.1 (the pinned wrapper version) can't run its own daemon on very new JDKs — on this machine the system default was JDK 26, which failed at Gradle *configuration* time (unrelated to this project's own Java 11 toolchain pin, which only affects what compiles/runs the actual code). Fixed by pinning the Gradle daemon JVM in `~/.gradle/gradle.properties` (`org.gradle.java.home=<path to a JDK ≤ 21>`) — a machine-local, untracked file, so it doesn't affect CI or other contributors. If `./gradlew` ever fails at configuration time again with an internal Gradle class-instantiation error, this is the first thing to check (`./gradlew -v` prints which JVM the daemon actually picked and why).
+**Local environment note:** Gradle 9.6.1 (the pinned wrapper version) can't run its own daemon on very new JDKs — on this machine the system default was JDK 26, which failed at Gradle *configuration* time (unrelated to this project's own Java 11 bytecode target, which only affects what the compiled code runs on — see the baseline note above). Fixed by pinning the Gradle daemon JVM in `~/.gradle/gradle.properties` (`org.gradle.java.home=<path to a JDK ≤ 21>`) — a machine-local, untracked file, so it doesn't affect CI or other contributors. If `./gradlew` ever fails at configuration time again with an internal Gradle class-instantiation error, this is the first thing to check (`./gradlew -v` prints which JVM the daemon actually picked and why).
 
 **Native build (`nativeCompile`) locally:** none of the JDKs registered with macOS (`/usr/libexec/java_home -V`) are GraalVM distributions, so `nativeCompile` needs `JAVA_HOME` pointed explicitly at a real GraalVM install for that one command (separate from the `org.gradle.java.home` daemon pin above — the native-image-plugin reads `JAVA_HOME` itself, independently of the daemon JVM). On this machine GraalVM CE 25.0.2 is installed via SDKMAN at `~/.sdkman/candidates/java/25.0.2-graalce` (SDKMAN JDKs aren't visible to `java_home -V`, which is why they're easy to miss/forget about; GraalVM CE 21.0.2 is also still installed there from before, unused now):
 
